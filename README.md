@@ -1,1 +1,1 @@
-# image-to-textContributing guide coming soon.
+# Comic to text
