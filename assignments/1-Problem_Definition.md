@@ -24,8 +24,6 @@ Comic page(s) as images, user language preference, and possibly pacing/voice set
 
 # Objectives
 
-**Hierarchy (4 levels)**
-
 **Level 1 - North-star outcome**  
 
 Any user can understand a comic's full narrative and dialogue in their preferred language via a simple "upload -> play" flow.
