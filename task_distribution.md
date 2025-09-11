@@ -18,7 +18,8 @@
 
 ## Coding
 - High level planing: Elias
-- Training translation model: Dani + Aleksander?
-- Web app (Django): Timo + Aleksander
-- APIs & Chatbot logic (Image-to-text & text to speech): Tanzuh + Aleksander
+- Training translation model: Dani
+- Web app (Django): Timo
+- APIs & Chatbot logic (Image-to-text & text to speech): Tanzuh
 - Deployment + Scaling: Selim
+- Help where help is needed: Aleksander
