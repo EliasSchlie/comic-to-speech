@@ -24,50 +24,42 @@ Comic page(s) as images, user language preference, and possibly pacing/voice set
 
 # Objectives
 
-**Level 1 - North-star outcome**  
+* **Organisational objectives**
+    * Make comics independently consumable via audio in each user’s preferred language.
+    * Increase inclusion and autonomy of visually impaired readers in everyday media use.
+    * Operate sustainably and predictably so access remains reliably available.
 
-Any user can understand a comic's full narrative and dialogue in their preferred language via a simple "upload -> play" flow.
+* **Leading objectives**
+    * Achieve strong user sentiment: clarity of narration, perceived faithfulness to the story, and overall satisfaction.
+    * Minimize friction: most users succeed with “upload → play” without assistance.
 
-**Level 2 - Strategic goals**
+* **User-oriented objectives**
+    * **What:** Faithful narration that preserves correct panel order, speaker turns, and key sound effects.
+    * **How fast:** End-to-end processing per page within an agreed target; smooth playback with minimal delays.
+    * **How clear:** Natural, intelligible speech; concise, unambiguous descriptions with minimal omissions or confusion.
 
-- **G1. Accessibility & Experience** - Functional parity with sighted reading for comprehension and enjoyment
-- **G2. Quality & Fidelity** - Faithful, coherent story rendering with minimal errors
-- **G3. Efficiency & Reliability** - Predictable processing time for multi-page comics and stable operation
+* **Component (model) objectives**
+    * **Description generation:** Description coherently describes the commic with minimal hallucinations.
+    * **Translation:** Preserve meaning, names, and tone in the user’s language;
+    * **Text-to-speech:** Audio is easy to understand.
 
-**Level 3 - Objectives (aligned to goals)**
-
-- **O1.1 (G1)**: Support multi-page uploads and preserve correct panel order
-- **O1.2 (G1)**: Distinguish dialogue, narration, and SFX; maintain speaker turns
-- **O2.1 (G2)**: Produce high-adequacy English descriptions with low omission/hallucination rates
-- **O2.2 (G2)**: Translate into at least one other language
-- **O2.3 (G2)**: Generate clear, natural speech with appropriate prosody for dialogue
-- **O3.1 (G3)**: Keep end-to-end latency within a defined target per page and for full books
-- **O3.2 (G3)**: Handle peak loads without degradation; provide basic health monitoring
-
-**Level 4 - Indicative milestones**
-
-- **M1**: Demonstrate faithful meaning reproduction and correct ordering on a diverse sample
-- **M2**: Validate translation accuracy on test corpus
-- **M3**: TTS prosody patterns for dialogue vs. narration validated by pilot listeners
-- **M4**: End-to-end pilot ("upload -> play") on 10 comics; collect feedback on quality and latency
 
 # Measurements / KPIs
 
-**Comprehension & accessibility (G1).**
 
-- Narrative comprehension score from user tests (>= 90 %).
-- Reading‑order accuracy across pages (>= 95 %).
-- Dialogue attribution accuracy (>= 95 %).
+* **Organisational objectives**
+    * **Independent Access Rate** — % sessions where users complete an audio comic without assistance. (Target >= 90%)
+    * **Service Reliability** — % audio plays without failure; (Target >= 99%)
 
-**Quality & fidelity (G2).**
+* **Leading objectives**
+    * **Sentiment Score** — average user rating for clarity + faithfulness (1–5). (Target >= 4.3/5)
+    * **First-Try Success** — % users who complete “upload → play” on the first attempt. (Target >= 95%)
 
-- Description adequacy/fluency (subjective rating).
-- Translation adequacy & consistency (measured on test-set).
-- Prosody naturalness & intelligibility (listening tests).
-- Hallucination/omission rate (< 5 %).
+* **User-oriented objectives**
+    * **Narrative Mistakes** — % panels in incorrect order or incorrect speaker attribution. (Target >= 95%)
+    * **Processing Speed** — end-to-end time per page from upload to ready-to-play. (Target <= 10s/page)
+    * **Speech Intelligibility** — listener rating of ease of understanding (1–5). (Target >= 4.0/5)
 
-**Efficiency & reliability (G3).**
-
-- End‑to‑end latency per page (< 10 seconds).
-- Failure rate/timeouts (<= 5 %).
-- Cost/energy per processed page (tracked trend; target reductions over time).
+* **Component (model) objectives**
+    * **Description Quality** — panels affected by omissions or hallucinations. (Target <= 5%)
+    * **Translation Adequacy** — human adequacy score preserving meaning/names (1–5). (Target >= 4.0/5)
