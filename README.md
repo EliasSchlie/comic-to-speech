@@ -107,12 +107,17 @@ Set in `.env` file or `docker-compose.yml`:
 
 ### Translation
 
-The translation model files (`model/` directory, ~1.1GB) are **NOT** included in the repository due to size. To enable translation:
+The translation model files (`model/` directory, ~1.1GB) are **NOT** included in the repository due to size.
 
-1. Download or train the OpenNMT model
-2. Place files in `model/` directory:
-   - `model_step_22000.pt` - Translation checkpoint
-   - `bpe.model` - SentencePiece tokenizer
+**Download the pre-trained model (recommended)**
+1. Download the archive from Google Drive: https://drive.google.com/file/d/1yEbxA-JgA2Dq-uELBoZITTPT0o3pKXBy/view?usp=share_link
+2. Unzip the download and copy the contents into the repo’s `model/` folder so the files sit directly inside `model/` (not in a nested subfolder).
+   - You should end up with `model/model_step_22000.pt`, `model/bpe.model`, `model/translate.py`, etc.
+3. If you use Docker, download/extract the model before running `docker-compose build` so the worker image bundles the files.
+
+**Alternative:** train your own OpenNMT model and place the resulting files in `model/` with the same names:
+- `model_step_22000.pt` - Translation checkpoint
+- `bpe.model` - SentencePiece tokenizer
 
 Translation is optional and gracefully degrades if model files are missing.
 
