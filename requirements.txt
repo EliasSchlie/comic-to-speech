@@ -20,3 +20,9 @@ rq==1.15.1
 
 # Additional utilities
 python-dotenv==1.0.0
+
+# Translation dependencies (English to Dutch)
+OpenNMT-py==3.5.1
+pyonmttok>=1.37.0
+sentencepiece==0.1.99
+torch>=2.0.0

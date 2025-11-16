@@ -207,26 +207,33 @@ marimo/_lsp/
 __marimo__/
 
 # Mac
-*.DS_Storecredentials.json
+*.DS_Store
 credentials.json
 
-*.DS_Store
+# Python cache
 *__pycache__/
 *.pyc
+
+# Environment
 .env
 .cursor
 .venv
-.db
-mlruns
-mlruns/*
-.pytest_cache
-# Ignore LaTeX auxiliary files
+
+# Database
+*.db
+
+# MLflow
+mlruns/
+
+# Pytest
+.pytest_cache/
+
+# LaTeX auxiliary files
 *.aux
 *.bbl
 *.blg
 *.fdb_latexmk
 *.fls
-*.log
 *.synctex.gz
 *.toc
 *.lof
@@ -235,5 +242,26 @@ mlruns/*
 *.nav
 *.snm
 *.vrb
-model/model_step_*.pt
-model model/
+
+# Translation Model (1GB+ files)
+model/
+model_step_*.pt
+*.pt
+
+# Temporary files
+temp_images/*.png
+temp_images/*.jpg
+temp_images/*.jpeg
+audio_files/*.mp3
+audio_files/*.wav
+
+# Keep directories but ignore contents
+!temp_images/.gitkeep
+!audio_files/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# Docker volumes
+redis_data/

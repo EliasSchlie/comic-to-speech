@@ -286,18 +286,27 @@ HTML_TEMPLATE = """
       <label for="preprocessToggle">🔧 Enable image preprocessing (recommended for better accuracy)</label>
     </div>
 
+    <div class="checkbox-group">
+      <input type="checkbox" id="translateToggle" />
+      <label for="translateToggle">🌐 Translate to Dutch (Nederlands)</label>
+    </div>
+
     <div class="controls">
       <select class="voice-select" id="voiceSelect">
-        <option value="en-US-Neural2-F">🎭 Female Voice 1 (US)</option>
-        <option value="en-US-Neural2-C">🎭 Female Voice 2 (US)</option>
-        <option value="en-US-Neural2-E">🎭 Female Voice 3 (US)</option>
-        <option value="en-US-Neural2-D">👨 Male Voice 1 (US)</option>
-        <option value="en-US-Neural2-A">👨 Male Voice 2 (US)</option>
-        <option value="en-US-Neural2-I">👦 Child Voice (US)</option>
-        <option value="en-GB-Neural2-A">🇬🇧 British Female</option>
-        <option value="en-GB-Neural2-B">🇬🇧 British Male</option>
-        <option value="en-AU-Neural2-A">🇦🇺 Australian Female</option>
-        <option value="en-AU-Neural2-B">🇦🇺 Australian Male</option>
+        <option value="en-US-Neural2-F" data-lang="en-US">🎭 Female Voice 1 (US)</option>
+        <option value="en-US-Neural2-C" data-lang="en-US">🎭 Female Voice 2 (US)</option>
+        <option value="en-US-Neural2-E" data-lang="en-US">🎭 Female Voice 3 (US)</option>
+        <option value="en-US-Neural2-D" data-lang="en-US">👨 Male Voice 1 (US)</option>
+        <option value="en-US-Neural2-A" data-lang="en-US">👨 Male Voice 2 (US)</option>
+        <option value="en-US-Neural2-I" data-lang="en-US">👦 Child Voice (US)</option>
+        <option value="en-GB-Neural2-A" data-lang="en-GB">🇬🇧 British Female</option>
+        <option value="en-GB-Neural2-B" data-lang="en-GB">🇬🇧 British Male</option>
+        <option value="en-AU-Neural2-A" data-lang="en-AU">🇦🇺 Australian Female</option>
+        <option value="en-AU-Neural2-B" data-lang="en-AU">🇦🇺 Australian Male</option>
+        <option value="nl-NL-Standard-A" data-lang="nl-NL">🇳🇱 Dutch Female</option>
+        <option value="nl-NL-Standard-B" data-lang="nl-NL">🇳🇱 Dutch Male</option>
+        <option value="nl-NL-Wavenet-A" data-lang="nl-NL">🇳🇱 Dutch Female (Premium)</option>
+        <option value="nl-NL-Wavenet-B" data-lang="nl-NL">🇳🇱 Dutch Male (Premium)</option>
       </select>
       <button class="button" id="processBtn" disabled>🚀 Process Comic</button>
     </div>
@@ -326,8 +335,13 @@ HTML_TEMPLATE = """
       </div>
 
       <div class="result-box">
-        <h3>📝 Extracted Text</h3>
+        <h3>📝 Extracted Text (Original)</h3>
         <textarea id="extractedText" placeholder="Extracted text will appear here..."></textarea>
+      </div>
+
+      <div class="result-box" id="translatedTextBox" style="display: none;">
+        <h3>🌐 Translated Text (Dutch)</h3>
+        <textarea id="translatedText" placeholder="Translated text will appear here..."></textarea>
       </div>
 
       <div class="result-box">
@@ -353,9 +367,21 @@ HTML_TEMPLATE = """
     const processBtn = document.getElementById('processBtn');
     const voiceSelect = document.getElementById('voiceSelect');
     const preprocessToggle = document.getElementById('preprocessToggle');
+    const translateToggle = document.getElementById('translateToggle');
     const resultsDiv = document.getElementById('results');
     const loadingDiv = document.getElementById('loadingDiv');
     const jobStatusDiv = document.getElementById('jobStatus');
+
+    // Auto-select Dutch voice when translation is enabled
+    translateToggle.addEventListener('change', function() {
+      if (this.checked) {
+        // Switch to Dutch voice
+        voiceSelect.value = 'nl-NL-Standard-A';
+      } else {
+        // Switch back to English voice
+        voiceSelect.value = 'en-US-Neural2-F';
+      }
+    });
 
     uploadArea.addEventListener('click', () => fileInput.click());
 
@@ -405,8 +431,15 @@ HTML_TEMPLATE = """
       const formData = new FormData();
       formData.append('image', selectedFile);
       formData.append('voice_name', voiceSelect.value);
-      formData.append('language_code', 'en-US');
+
+      // Get language code from selected voice
+      const selectedOption = voiceSelect.options[voiceSelect.selectedIndex];
+      const languageCode = selectedOption.getAttribute('data-lang');
+      formData.append('language_code', languageCode);
+
       formData.append('preprocess', preprocessToggle.checked);
+      formData.append('translate', translateToggle.checked);
+      formData.append('target_language', 'nl');  // Dutch
 
       try {
         // Submit job
@@ -461,6 +494,14 @@ HTML_TEMPLATE = """
                 Math.round((result.confidence || 0) * 100) + '%';
               document.getElementById('extractedText').value = result.extracted_text || '';
               document.getElementById('audioPlayer').src = result.audio_url || '';
+
+              // Show translated text if available
+              if (result.translated_text) {
+                document.getElementById('translatedText').value = result.translated_text;
+                document.getElementById('translatedTextBox').style.display = 'block';
+              } else {
+                document.getElementById('translatedTextBox').style.display = 'none';
+              }
 
               updateStatus('COMPLETED', 'Processing completed successfully!');
               loadingDiv.style.display = 'none';
@@ -532,6 +573,8 @@ def process_comic():
         language_code = request.form.get('language_code', 'en-US')
         voice_name = request.form.get('voice_name', 'en-US-Neural2-F')
         preprocess = request.form.get('preprocess', 'true').lower() == 'true'
+        translate = request.form.get('translate', 'false').lower() == 'true'
+        target_language = request.form.get('target_language', 'nl')
 
         # Read image bytes
         image_bytes = file.read()
@@ -543,14 +586,16 @@ def process_comic():
             f.write(image_bytes)
 
         # Enqueue job (send to worker)
-        print(f"[INTERFACE] Enqueueing job: temp_id={temp_id}")
+        print(f"[INTERFACE] Enqueueing job: temp_id={temp_id}, translate={translate}")
 
         job = default_queue.enqueue(
             'tasks.process_comic_full_pipeline',
-            image_bytes,
-            language_code,
-            voice_name,
-            preprocess,
+            image_bytes=image_bytes,
+            language_code=language_code,
+            voice_name=voice_name,
+            preprocess=preprocess,
+            translate=translate,
+            target_language=target_language,
             job_timeout='10m'  # 10 minute timeout
         )
 

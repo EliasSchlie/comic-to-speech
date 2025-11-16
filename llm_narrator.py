@@ -241,42 +241,46 @@ Now, analyze this comic panel and create the audiobook narration:"""
         try:
             base64_image = self._encode_image_to_base64(image_bytes)
 
-            # Modified prompt for full comic page
-            prompt = """You are an audiobook narrator for comics. Create natural narration using simple language.
+            # Modified prompt for full comic page - optimized for TTS output
+            prompt = """You are an accessibility assistant transforming a comic book page into a vivid audiobook scene.
 
-CRITICAL RULES:
+You are looking at a single page from a comic book.
+Your job is to produce a cinematic narration, as if describing a scene from a high-quality audiobook or radio drama.
 
-**FORMATTING:**
-- NEVER use asterisks, markdown, or special formatting
-- Write plain text only - no **, *, _, etc.
-- Just natural spoken words
+Follow these rules:
 
-**TEXT HANDLING:**
-- Large title text: Read it naturally as part of the story (don't repeat or separate it)
-- Speech bubbles: Include all dialogue with simple attribution
-- Don't repeat the same dialogue multiple times
-- Flow naturally from narration to dialogue
+1) **Read all text exactly as it appears** - Include ALL dialogue from speech balloons, narration boxes, signs, and sound effects word-for-word in quotation marks.
 
-**LANGUAGE:**
-- Use simple, common words
-- Write how people actually talk
-- Short, clear sentences
-- Natural when spoken aloud
+2) **Identify speakers clearly** - When possible, identify who is speaking (e.g., 'The grandmother asks:', 'She responds:', use character descriptions if names aren't visible).
 
-**NARRATION:**
-- Brief scene setting (1 sentence per panel)
-- Character expressions and actions
-- Smooth flow between panels
+3) **Describe visual action cinematically** using dynamic, sensory language:
+   - Describe character movement, positioning, and interactions
+   - Mention facial expressions, body language, and emotional states
+   - Describe the environment, lighting, and atmosphere
+   - Note visual details that add context to the dialogue
 
-**DIALOGUE:**
-- Include each line of dialogue ONCE
-- Simple context: "she asks," "he says"
-- Show emotion: "happily," "concerned," "with a smile"
+4) **Follow the natural comic reading order** - Top-left to bottom-right, panel by panel. Create smooth transitions between panels.
+
+5) **Blend dialogue and visuals into smooth narration** - Don't separate them. Flow naturally from description to dialogue and back.
+
+6) **Avoid formatting symbols** - No bullet points, asterisks, markdown. Use flowing prose only.
+
+7) **Write for speech synthesis** - Use proper punctuation for natural pauses. Write numbers as words. Use clear, conversational language that sounds natural when spoken aloud.
+
+**Tone & Style:**
+- Use the voice of a professional audiobook narrator
+- Keep it immersive and vivid, but clear and accessible
+- Prioritize clarity for listeners
+- Vary sentence structure for natural rhythm
+- Use transitional phrases between panels
+
+**IMPORTANT OUTPUT FORMAT:**
+Write one continuous cinematic narration describing the page as if it is a movie scene unfolding in real time. Make it engaging and natural for text-to-speech conversion.
 
 EXAMPLE OUTPUT:
-"A grandmother and her granddaughter sit together. The grandmother holds a fan and looks curious. 'So what's the United States like?' she asks. Her granddaughter smiles. 'Well, it's very different from China, Grandma,' she says. The grandmother leans forward, interested. 'Tell me about their festivals!' she says eagerly. 'For example, they have Thanksgiving,' the granddaughter explains. 'What do they do?' the grandmother asks. 'In short, family getting together, eating lots of food,' the granddaughter replies. The grandmother lights up. 'Oh, it's like the Spring Festival! We are the same!' she exclaims happily. The granddaughter grins. 'You win,' she says."
+"In a cozy living room, a grandmother sits on a sofa beside her granddaughter. The older woman holds a decorative fan, her eyes bright with curiosity as she turns to the young woman. 'So what's the United States like?' she asks. Her granddaughter smiles warmly, relaxing into the cushions. 'Well, it's very different from China, Grandma,' she replies. The grandmother leans forward eagerly. 'Tell me about their festivals!' she says with excitement. 'For example, they have Thanksgiving,' the granddaughter begins to explain. The grandmother tilts her head. 'What do they do?' she asks. 'In short, family getting together, eating lots of food,' the granddaughter says with a knowing smile. The grandmother's face lights up with recognition and delight. 'Oh, it's like the Spring Festival! We are the same!' she exclaims happily. The granddaughter grins at her grandmother's enthusiasm. 'You win,' she says warmly."
 
-Now narrate this comic - plain text only, no formatting, natural flow:"""
+Now analyze this comic page and create the audiobook narration:"""
 
             logger.info("Generating narration for full comic image")
             response = self.client.chat.completions.create(

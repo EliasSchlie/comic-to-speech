@@ -6,6 +6,7 @@ This module contains the actual AI processing tasks that workers execute
 
 from google.cloud import texttospeech
 import uuid
+import logging
 
 # Import the OCR processing logic from the original file
 from comic_reader_fixed import (
@@ -16,8 +17,15 @@ from comic_reader_fixed import (
     get_tts_client
 )
 
+# Import translation module
+from ocr_comic_to_text.translation_model import translate_text, is_translation_available
+
 # Ensure credentials are set up
 setup_credentials()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def process_ocr_task(image_bytes, preprocess=True):
     """
@@ -60,14 +68,63 @@ def process_ocr_task(image_bytes, preprocess=True):
         }
 
 
+def process_translation_task(text, src_lang="en", tgt_lang="nl"):
+    """
+    Task: Translate text from English to Dutch (or other target language)
+
+    Args:
+        text: Text to translate
+        src_lang: Source language code (default: "en")
+        tgt_lang: Target language code (default: "nl" for Dutch)
+
+    Returns:
+        dict: Translation result and metadata
+    """
+    logger.info(f"[WORKER] Processing translation task ({len(text)} chars, {src_lang} -> {tgt_lang})")
+
+    if not text:
+        return {
+            "success": False,
+            "error": "No text provided for translation"
+        }
+
+    try:
+        # Check if translation is available
+        if not is_translation_available():
+            return {
+                "success": False,
+                "error": "Translation model not available"
+            }
+
+        # Translate the text
+        translated = translate_text(text, src_lang=src_lang, tgt_lang=tgt_lang)
+
+        logger.info(f"[WORKER] Translation completed: {len(translated)} chars")
+
+        return {
+            "success": True,
+            "translated_text": translated,
+            "original_text": text,
+            "src_lang": src_lang,
+            "tgt_lang": tgt_lang
+        }
+    except Exception as e:
+        logger.error(f"[WORKER] Translation error: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e),
+            "original_text": text  # Return original on error
+        }
+
+
 def process_tts_task(text, language_code='en-US', voice_name='en-US-Neural2-F'):
     """
     Task: Generate speech audio from text using TTS
 
     Args:
         text: Text to convert to speech
-        language_code: Language code (e.g., 'en-US')
-        voice_name: Voice name (e.g., 'en-US-Neural2-F')
+        language_code: Language code (e.g., 'en-US', 'nl-NL')
+        voice_name: Voice name (e.g., 'en-US-Neural2-F', 'nl-NL-Standard-A')
 
     Returns:
         dict: Audio file ID and metadata
@@ -133,25 +190,28 @@ def process_tts_task(text, language_code='en-US', voice_name='en-US-Neural2-F'):
 
 
 def process_comic_full_pipeline(image_bytes, language_code='en-US',
-                                voice_name='en-US-Neural2-F', preprocess=True):
+                                voice_name='en-US-Neural2-F', preprocess=True,
+                                translate=False, target_language="nl"):
     """
-    Task: Complete pipeline - OCR + TTS
+    Task: Complete pipeline - OCR + (Optional Translation) + TTS
 
-    This combines both OCR and TTS into a single task.
+    This combines OCR, optional translation, and TTS into a single task.
     Useful for simpler orchestration.
 
     Args:
         image_bytes: Raw image data
-        language_code: Language for TTS
-        voice_name: Voice for TTS
+        language_code: Language for TTS (e.g., 'en-US', 'nl-NL')
+        voice_name: Voice for TTS (e.g., 'en-US-Neural2-F', 'nl-NL-Standard-A')
         preprocess: Whether to preprocess image
+        translate: Whether to translate text before TTS (default: False)
+        target_language: Target language for translation (default: "nl" for Dutch)
 
     Returns:
-        dict: Combined results from OCR and TTS
+        dict: Combined results from OCR, translation (if enabled), and TTS
     """
-    print(f"[WORKER] Processing full pipeline task")
+    logger.info(f"[WORKER] Processing full pipeline task (translate={translate})")
 
-    # Step 1: OCR
+    # Step 1: OCR - Extract text from comic
     ocr_result = process_ocr_task(image_bytes, preprocess)
 
     if not ocr_result["success"]:
@@ -165,14 +225,36 @@ def process_comic_full_pipeline(image_bytes, language_code='en-US',
             "error": "No text extracted from image"
         }
 
-    # Step 2: TTS
-    tts_result = process_tts_task(extracted_text, language_code, voice_name)
+    # Step 2: Translation (optional)
+    text_for_tts = extracted_text
+    translated_text = None
+    translation_error = None
+
+    if translate:
+        logger.info(f"[WORKER] Translation enabled, translating to {target_language}")
+        translation_result = process_translation_task(
+            extracted_text,
+            src_lang="en",
+            tgt_lang=target_language
+        )
+
+        if translation_result["success"]:
+            text_for_tts = translation_result["translated_text"]
+            translated_text = translation_result["translated_text"]
+            logger.info("[WORKER] Translation successful")
+        else:
+            # If translation fails, continue with original text
+            translation_error = translation_result.get("error", "Translation failed")
+            logger.warning(f"[WORKER] Translation failed: {translation_error}, using original text")
+
+    # Step 3: TTS - Convert text to speech
+    tts_result = process_tts_task(text_for_tts, language_code, voice_name)
 
     if not tts_result["success"]:
         return tts_result
 
     # Combine results
-    return {
+    result = {
         "success": True,
         "extracted_text": extracted_text,
         "panel_count": ocr_result["panel_count"],
@@ -185,3 +267,14 @@ def process_comic_full_pipeline(image_bytes, language_code='en-US',
         "audio_url": tts_result["audio_url"],
         "characters_used": tts_result["characters_used"]
     }
+
+    # Add translation info if translation was performed
+    if translate:
+        result["translation_enabled"] = True
+        result["target_language"] = target_language
+        if translated_text:
+            result["translated_text"] = translated_text
+        if translation_error:
+            result["translation_error"] = translation_error
+
+    return result

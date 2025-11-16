@@ -33,6 +33,10 @@ except ImportError:
 
 import config
 
+# Import tasks module to ensure it's loaded before worker starts
+# This helps RQ find the task functions
+import tasks
+
 # Connect to Redis
 redis_conn = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, db=config.REDIS_DB)
 
