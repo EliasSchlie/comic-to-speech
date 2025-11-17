@@ -2,6 +2,12 @@
 
 AI-powered comic book narration system that transforms visual comics into immersive audiobook experiences. Uses OpenAI GPT-4 Vision for cinematic narration, Google Cloud Vision for OCR fallback, neural machine translation (EN→NL), and Google Cloud TTS for natural-sounding speech.
 
+### Repository layout (non-breaking)
+- `docs/` — project notes (add SCALABILITY.md here)
+- `audio_files/`, `temp_images/`, `ocr_outputs/`, `comics/` — runtime data; paths stay unchanged for Docker and code
+- `model/` — translation weights (download separately as below)
+- `interface_server.py`, `tasks.py`, `comic_reader_fixed.py` — main interface + worker pipeline (remain at repo root for compatibility)
+
 ## Features
 
 - **🎭 Cinematic LLM Narration** - GPT-4 Vision creates audiobook-style narration with dialogue and scene descriptions

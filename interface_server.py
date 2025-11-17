@@ -233,20 +233,6 @@ HTML_TEMPLATE = """
       gap: 10px;
       margin: 15px 0;
     }
-    .features-list {
-      background: #d1fae5;
-      padding: 20px;
-      border-radius: 10px;
-      margin: 20px 0;
-      border: 2px solid #10b981;
-    }
-    .features-list ul {
-      list-style-position: inside;
-      color: #2d3748;
-    }
-    .features-list li {
-      padding: 5px 0;
-    }
     .status-badge {
       display: inline-block;
       padding: 4px 8px;
@@ -259,6 +245,36 @@ HTML_TEMPLATE = """
     .status-processing { background: #3b82f6; color: white; }
     .status-completed { background: #10b981; color: white; }
     .status-failed { background: #ef4444; color: white; }
+    .upload-preview {
+      display: none;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      color: #2d3748;
+      flex-wrap: wrap;
+    }
+    .upload-preview img {
+      max-width: 260px;
+      max-height: 260px;
+      border-radius: 10px;
+      object-fit: contain;
+      border: 2px solid #e2e8f0;
+      background: white;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .upload-preview .upload-preview__details {
+      text-align: left;
+      max-width: 320px;
+    }
+    .upload-preview__details h3 {
+      margin-bottom: 8px;
+      color: #1f2937;
+    }
+    .upload-preview__details p {
+      color: #4b5563;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
@@ -270,22 +286,19 @@ HTML_TEMPLATE = """
     </h1>
     <p class="subtitle">Upload your comic page and let AI read it to you!</p>
 
-    <div class="features-list">
-      <strong>⚡ Distributed Architecture Features:</strong>
-      <ul>
-        <li>🔄 <strong>Scalable Processing</strong> - Multiple AI workers can process tasks in parallel</li>
-        <li>📊 <strong>Queue-based Orchestration</strong> - Tasks are managed efficiently using Redis Queue</li>
-        <li>🚀 <strong>Asynchronous Processing</strong> - Non-blocking task execution</li>
-        <li>💪 <strong>Fault Tolerant</strong> - Failed tasks can be retried automatically</li>
-        <li>🧠 <strong>NLP Text Reordering</strong> - Automatically fixes jumbled text</li>
-        <li>💬 <strong>Speech Bubble Detection</strong> - Smart comic reading order</li>
-      </ul>
-    </div>
-
     <div class="upload-area" id="uploadArea">
-      <div class="upload-icon">📤</div>
-      <h3>Click to upload or drag & drop</h3>
-      <p>Supports: JPG, PNG, GIF, WebP</p>
+      <div id="uploadPrompt">
+        <div class="upload-icon">📤</div>
+        <h3>Click to upload or drag & drop</h3>
+        <p>Supports: JPG, PNG, GIF, WebP</p>
+      </div>
+      <div class="upload-preview" id="uploadPreview">
+        <img id="previewImage" alt="Comic preview" />
+        <div class="upload-preview__details">
+          <h3 id="previewName"></h3>
+          <p id="previewInfo">Ready to process!</p>
+        </div>
+      </div>
       <input type="file" id="fileInput" accept="image/*" style="display: none;" />
     </div>
 
@@ -379,6 +392,10 @@ HTML_TEMPLATE = """
     const resultsDiv = document.getElementById('results');
     const loadingDiv = document.getElementById('loadingDiv');
     const jobStatusDiv = document.getElementById('jobStatus');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const uploadPreview = document.getElementById('uploadPreview');
+    const previewImage = document.getElementById('previewImage');
+    const previewName = document.getElementById('previewName');
 
     // Auto-select Dutch voice when translation is enabled
     translateToggle.addEventListener('change', function() {
@@ -420,11 +437,14 @@ HTML_TEMPLATE = """
 
     function handleFileSelect(file) {
       selectedFile = file;
-      uploadArea.innerHTML = `
-        <div class="upload-icon">✅</div>
-        <h3>File selected: ${file.name}</h3>
-        <p>Ready to process!</p>
-      `;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        previewImage.src = event.target.result;
+        previewName.textContent = `File selected: ${file.name}`;
+        uploadPreview.style.display = 'flex';
+        uploadPrompt.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
       processBtn.disabled = false;
     }
 
