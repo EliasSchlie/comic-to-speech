@@ -254,6 +254,8 @@ temp_images/*.jpg
 temp_images/*.jpeg
 audio_files/*.mp3
 audio_files/*.wav
+data/*
+!data/.gitkeep
 
 # Keep directories but ignore contents
 !temp_images/.gitkeep
