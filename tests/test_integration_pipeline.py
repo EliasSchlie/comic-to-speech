@@ -1,58 +1,108 @@
-import pytest
-pytest.skip("Skipping integration test: translation model not configured", allow_module_level=True)
+# tests/test_integration_pipeline.py
 
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import tasks
 
-import pytest
+def test_full_pipeline_no_translation(monkeypatch):
+    """
+    Integration test:
+    process_comic_full_pipeline with OCR mocked,
+    translation disabled, and TTS mocked
+    """
 
-# Mock or import your modules
-from ocr_comic_to_text.bubble_extractor import SpeechBubbleDetector
-from ocr_comic_to_text.translation_model import translate_text
-from tts_module import text_to_speech  # Example module
+    # --- Mock OCR result (LLM narration acts as OCR replacement) ---
+    def fake_ocr(image_bytes, preprocess=True):
+        return {
+            "success": True,
+            "extracted_text": "Hello from comic",
+            "panel_count": 1,
+            "bubble_count": 1,
+            "text_blocks": 1,
+            "confidence": 0.9,
+            "narration_mode": "llm",
+            "tokens_used": 30,
+        }
 
-# --- 1. OCR → Translation ---
-def test_ocr_to_translation_pipeline(monkeypatch):
-    # Mock bubble detection to return fake OCR output
-    mock_bubbles = [{'text': 'Hello world'}]
-    monkeypatch.setattr(SpeechBubbleDetector, "process_comic_page", lambda self, img: {"bubble_texts": mock_bubbles})
-    
-    detector = SpeechBubbleDetector()
-    ocr_result = detector.process_comic_page("dummy_image.png")
-    translated = translate_text(ocr_result["bubble_texts"][0]["text"])
-    
-    assert isinstance(translated, str)
-    assert len(translated) > 0
+    # --- Mock TTS result ---
+    def fake_tts(text, language_code, voice_name):
+        return {
+            "success": True,
+            "audio_id": "audio-123",
+            "audio_url": "/api/audio/audio-123",
+            "characters_used": len(text),
+        }
 
-# --- 2. Translation → Speech (TTS) ---
-def test_translation_to_tts_pipeline(monkeypatch, tmp_path):
-    # Fake translation output
-    text = "Hallo wereld"
-    
-    # Mock text-to-speech output path
-    output_file = tmp_path / "speech.wav"
-    def fake_tts(txt, out_path): 
-        out_path.write_text("fake audio")
-        return out_path
-    
-    monkeypatch.setattr("tts_module.text_to_speech", fake_tts)
-    result = text_to_speech(text, output_file)
-    
-    assert result.exists()
-    assert "fake audio" in result.read_text()
+    monkeypatch.setattr(tasks, "process_ocr_task", fake_ocr)
+    monkeypatch.setattr(tasks, "process_tts_task", fake_tts)
 
-# --- 3. OCR → Translation → TTS (Full pipeline) ---
-def test_full_pipeline(monkeypatch, tmp_path):
-    mock_bubbles = [{'text': 'Good morning'}]
-    monkeypatch.setattr(SpeechBubbleDetector, "process_comic_page", lambda self, img: {"bubble_texts": mock_bubbles})
-    
-    detector = SpeechBubbleDetector()
-    ocr_result = detector.process_comic_page("dummy_image.png")
-    translated = translate_text(ocr_result["bubble_texts"][0]["text"])
-    
-    # Fake TTS
-    output_file = tmp_path / "output.wav"
-    output_file.write_text("fake speech")
-    
-    assert isinstance(translated, str)
-    assert output_file.exists()
+    result = tasks.process_comic_full_pipeline(
+        b"fake-image-data",
+        language_code="en-US",
+        voice_name="en-US-Neural2-F",
+        translate=False,
+    )
+
+    assert result["success"] is True
+    assert result["extracted_text"] == "Hello from comic"
+    assert result["audio_id"] == "audio-123"
+    assert result["characters_used"] == len("Hello from comic")
+    assert "translated_text" not in result
+    assert "translation_enabled" not in result
+
+
+def test_full_pipeline_with_translation(monkeypatch):
+    """
+    Integration test:
+    OCR mocked, translation mocked, TTS mocked
+    """
+
+    # --- Mock OCR ---
+    def fake_ocr(image_bytes, preprocess=True):
+        return {
+            "success": True,
+            "extracted_text": "Hello from comic",
+            "panel_count": 1,
+            "bubble_count": 1,
+            "text_blocks": 1,
+            "confidence": 0.9,
+            "narration_mode": "llm",
+            "tokens_used": 30,
+        }
+
+    # --- Mock Translation ---
+    def fake_translation(text, src_lang="en", tgt_lang="nl"):
+        return {
+            "success": True,
+            "translated_text": "Hallo van de strip",
+            "original_text": text,
+            "src_lang": src_lang,
+            "tgt_lang": tgt_lang,
+        }
+
+    # --- Mock TTS ---
+    def fake_tts(text, language_code, voice_name):
+        # Should receive translated text
+        assert text == "Hallo van de strip"
+        return {
+            "success": True,
+            "audio_id": "audio-nl-123",
+            "audio_url": "/api/audio/audio-nl-123",
+            "characters_used": len(text),
+        }
+
+    monkeypatch.setattr(tasks, "process_ocr_task", fake_ocr)
+    monkeypatch.setattr(tasks, "process_translation_task", fake_translation)
+    monkeypatch.setattr(tasks, "process_tts_task", fake_tts)
+
+    result = tasks.process_comic_full_pipeline(
+        b"fake-image-data",
+        language_code="nl-NL",
+        voice_name="nl-NL-Standard-A",
+        translate=True,
+        target_language="nl",
+    )
+
+    assert result["success"] is True
+    assert result["translated_text"] == "Hallo van de strip"
+    assert result["audio_id"] == "audio-nl-123"
+    assert result["translation_enabled"] is True
+    assert result["target_language"] == "nl"
