@@ -24,7 +24,7 @@ AI-powered comic book narration system that transforms visual comics into immers
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/EliasSchlie/comic-to-speech
 cd comic-to-speech
 
 # Create credentials file
@@ -356,3 +356,4 @@ For issues or questions:
 ---
 
 **Ready to transform comics into audiobooks!** 🎭📚🔊
+
