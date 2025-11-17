@@ -265,3 +265,5 @@ audio_files/*.wav
 
 # Docker volumes
 redis_data/
+
+Claude.md
