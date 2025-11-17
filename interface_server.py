@@ -4,8 +4,16 @@ Interface Server - Handles web UI and user requests
 This server does NOT process AI tasks directly - it enqueues them to workers
 """
 
+import sys
 import os
 from pathlib import Path
+
+if sys.version_info[:3] != (3, 11, 9):
+    print(f"⚠️  WARNING: This application requires Python 3.11.9")
+    print(f"   Current version: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+    print(f"   Some features may not work correctly with other versions")
+    print()
+
 from flask import Flask, request, jsonify, send_file, render_template_string
 from flask_cors import CORS
 from redis import Redis

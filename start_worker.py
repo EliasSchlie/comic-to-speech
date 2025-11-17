@@ -17,6 +17,13 @@ Or to run multiple workers:
 import os
 import platform
 import sys
+
+if sys.version_info[:3] != (3, 11, 9):
+    print(f"⚠️  WARNING: This application requires Python 3.11.9")
+    print(f"   Current version: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+    print(f"   Some features may not work correctly with other versions")
+    print()
+
 from redis import Redis
 from rq import Worker, Queue
 
