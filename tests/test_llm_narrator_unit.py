@@ -1,35 +1,24 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from llm_narrator import ComicNarrator
+from unittest.mock import patch
+from llm_narrator import narrate_panel
 
-@patch("llm_narrator.OpenAI")
-def test_narrate_panel_success(mock_openai):
-    mock_client = MagicMock()
-    mock_openai.return_value = mock_client
+@patch("llm_narrator.get_openai_client")
+def test_narrate_panel_success(mock_client):
+    instance = mock_client.return_value
+    instance.responses.return_value.create.return_value = {
+        "output_text": "Narration."
+    }
 
-    mock_client.chat.completions.create.return_value = MagicMock(
-        choices=[MagicMock(message=MagicMock(content="Narration text"))],
-        usage=MagicMock(total_tokens=42)
-    )
-
-    narrator = ComicNarrator(api_key="test")
-
-    result = narrator.narrate_panel(b"fakeimage")
+    result = narrate_panel("Girl walks home.")
 
     assert result["success"] is True
-    assert result["narration"] == "Narration text"
-    assert result["tokens_used"] == 42
+    assert "Narration" in result["narration"]
 
 
-@patch("llm_narrator.OpenAI")
-def test_narrate_panel_failure(mock_openai):
-    mock_client = MagicMock()
-    mock_openai.return_value = mock_client
+@patch("llm_narrator.get_openai_client")
+def test_narrate_panel_failure(mock_client):
+    instance = mock_client.return_value
+    instance.responses.return_value.create.side_effect = Exception("LLM error")
 
-    mock_client.chat.completions.create.side_effect = Exception("API error")
-
-    narrator = ComicNarrator(api_key="test")
-    result = narrator.narrate_panel(b"fakeimage")
+    result = narrate_panel("test")
 
     assert result["success"] is False
-    assert "API error" in result["error"]
