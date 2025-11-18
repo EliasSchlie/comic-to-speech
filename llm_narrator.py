@@ -349,3 +349,20 @@ def get_comic_narrator(api_key: Optional[str] = None) -> ComicNarrator:
         _narrator_instance = ComicNarrator(api_key=api_key)
 
     return _narrator_instance
+
+
+
+
+def narrate_panel(image_bytes, panel_number=None, total_panels=None, max_tokens=500):
+    """
+    Compatibility wrapper for unit tests.
+    Calls ComicNarrator().narrate_panel(...)
+    """
+    narrator = get_comic_narrator()
+    return narrator.narrate_panel(
+        image_bytes=image_bytes,
+        panel_number=panel_number,
+        total_panels=total_panels,
+        max_tokens=max_tokens
+    )
+
