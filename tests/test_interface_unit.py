@@ -1,21 +1,15 @@
 import pytest
-from io import BytesIO
-from interface_server import app
+from interface_server import validate_image_upload
 
-@pytest.fixture
-def client():
-    app.config["TESTING"] = True
-    return app.test_client()
+def test_no_file_uploaded():
+    ok, error = validate_image_upload(None)
+    assert ok is False
+    assert "no file" in error.lower()
 
+def test_wrong_file_type():
+    class FakeFile:
+        filename = "test.txt"
 
-def test_no_file_uploaded(client):
-    res = client.post("/api/process-comic", data={})
-    assert res.status_code == 400
-    assert "No image file provided" in res.get_json()["error"]
-
-
-def test_wrong_file_type(client):
-    res = client.post("/api/process-comic",
-                      data={"image": (BytesIO(b"hello"), "not_image.txt")},
-                      content_type="multipart/form-data")
-    assert res.status_code in (400, 415)
+    ok, error = validate_image_upload(FakeFile())
+    assert ok is False
+    assert "image" in error.lower()
