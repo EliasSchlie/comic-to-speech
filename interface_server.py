@@ -23,8 +23,38 @@ import uuid
 from datetime import datetime, timedelta
 import config
 
+
+
+
+
 app = Flask(__name__)
 CORS(app)
+
+def validate_image_upload(file):
+    """
+    Validate uploaded image:
+    - must exist
+    - must have allowed extension
+    - must be under 10 MB
+    """
+    if file is None:
+        return False, "No file uploaded"
+
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+    filename = file.filename.lower()
+
+    if not any(filename.endswith(ext) for ext in allowed_extensions):
+        return False, "Unsupported file type"
+
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+
+    if size > 10 * 1024 * 1024:
+        return False, "File too large"
+
+    return True, None
+
 
 # Connect to Redis (orchestrator/queue)
 try:
