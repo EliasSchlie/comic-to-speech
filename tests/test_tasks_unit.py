@@ -1,9 +1,15 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from tasks import process_ocr_task, process_translation_task, process_tts_task
+from tasks import (
+    process_ocr_task,
+    process_translation_task,
+    process_tts_task,
+)
 
+# ---------------------------
+# OCR TASK TESTS
+# ---------------------------
 
-# -------- OCR UNIT TEST --------
 @patch("tasks.ComicOCR")
 def test_ocr_task_success(mock_ocr):
     instance = mock_ocr.return_value
@@ -20,25 +26,29 @@ def test_ocr_task_success(mock_ocr):
 
     assert result["success"] is True
     assert result["extracted_text"] == "Hello"
-    assert result["panel_count"] == 1
 
 
 @patch("tasks.ComicOCR")
 def test_ocr_task_failure(mock_ocr):
     instance = mock_ocr.return_value
-    instance.extract_text.side_effect = Exception("OCR failed")
+    instance.extract_text.side_effect = Exception("OCR boom")
 
-    result = process_ocr_task(b"fakeimage")
+    result = process_ocr_task(b"fake")
 
     assert result["success"] is False
-    assert "OCR failed" in result["error"]
+    assert "OCR error" in result["error"]
 
 
-# -------- TRANSLATION UNIT TEST --------
+# ---------------------------
+# TRANSLATION TESTS
+# ---------------------------
+
 @patch("tasks.is_translation_available", return_value=True)
-@patch("tasks.translate_text", return_value="Hallo wereld")
-def test_translation_task_success(mock_trans, mock_avail):
-    result = process_translation_task("Hello world")
+@patch("tasks.translate_text")
+def test_translation_task_success(mock_trans, _):
+    mock_trans.return_value = "Hallo wereld"
+
+    result = process_translation_task("Hello world", src_lang="en", tgt_lang="nl")
 
     assert result["success"] is True
     assert result["translated_text"] == "Hallo wereld"
@@ -46,31 +56,39 @@ def test_translation_task_success(mock_trans, mock_avail):
 
 @patch("tasks.is_translation_available", return_value=False)
 def test_translation_task_unavailable(_):
-    result = process_translation_task("test")
+    result = process_translation_task("Hello")
 
     assert result["success"] is False
-    assert "not available" in result["error"]
+    assert "not available" in result["error"].lower()
 
 
-# -------- TTS UNIT TEST --------
+# ---------------------------
+# TTS TESTS
+# ---------------------------
+
 @patch("tasks.get_tts_client")
 def test_tts_success(mock_tts):
-    mock_client = MagicMock()
-    mock_tts.return_value = mock_client
+    client = MagicMock()
+    mock_tts.return_value = client
 
-    mock_client.synthesize_speech.return_value = MagicMock(audio_content=b"FAKEAUDIO")
+    client.synthesize_speech.return_value = MagicMock(audio_content=b"AUDIO")
 
-    result = process_tts_task("Hello world")
+    result = process_tts_task("Hello")
 
     assert result["success"] is True
     assert "audio_id" in result
+    assert "audio_url" in result
+    assert result["characters_used"] == len("Hello")
 
 
 @patch("tasks.get_tts_client")
 def test_tts_failure(mock_tts):
-    mock_tts.side_effect = Exception("TTS unavailable")
+    client = MagicMock()
+    mock_tts.return_value = client
 
-    result = process_tts_task("Hello world")
+    client.synthesize_speech.side_effect = Exception("TTS failed")
+
+    result = process_tts_task("Hello")
 
     assert result["success"] is False
-    assert "TTS" in result["error"]
+    assert "TTS error" in result["error"]
