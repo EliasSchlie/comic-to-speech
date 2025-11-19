@@ -127,38 +127,34 @@ uv run pytest tests/test_extreme_cases.py::test_ocr_with_actual_black_image -v
 
 ### Test Coverage
 
-| Test File | Tests | Type | What It Tests |
+| Test File | Tests | Type | What We Test |
 |-----------|-------|------|---------------|
-| `test_interface_unit.py` | 6 | **Unit** | File validation, size limits (including boundary conditions), supported extensions |
-| `test_llm_narrator_unit.py` | 5 | **Unit** | LLM narration logic, prompt generation, error handling |
-| `test_tasks_unit.py` | 12 | **Unit** | OCR, translation, TTS task validation and edge cases |
-| `test_pipeline_integration.py` | 5 | **Integration** | End-to-end pipeline orchestration and data flow |
-| `test_extreme_cases.py` | 5 | **Edge Cases** | Empty text validation, real OCR tests, parallel execution, service failures |
-| `test_translation_integration.py` | 8 | **Integration** | Real translation tests, subprocess error handling, pytest overrides |
+| `test_interface_unit.py` | 6 | **Unit** | File upload validation: presence checks, file type restrictions (jpg/png/gif/webp), 10MB size limit with exact boundary conditions |
+| `test_llm_narrator_unit.py` | 4 | **Unit** | ComicNarrator class: API key validation, base64 image encoding, prompt generation with/without panel context, OpenAI API error handling |
+| `test_tasks_unit.py` | 13 | **Unit** | Individual task functions: OCR extraction success/failure, translation with None/empty inputs, TTS validation and client initialization failures |
+| `test_pipeline_integration.py` | 5 | **Integration** | Full pipeline orchestration: data flow between OCR→Translation→TTS, graceful degradation on failures, correct text routing (original vs translated) |
+| `test_extreme_cases.py` | 5 (1 skipped) | **Edge Cases** | Unusual scenarios: empty OCR results, translation unavailable, TTS quota exceeded, parallel execution smoke test, **skipped**: real black image OCR (requires API credentials) |
+| `test_translation_integration.py` | 8 (2 skipped) | **Integration** | Translation system: pytest override behavior, EN→NL translation, empty/whitespace handling, long text support, **skipped**: subprocess timeout/failure (pytest override prevents testing) |
 
-### Recent Test Improvements
+### Test Strategy
 
-**Fixed Issues:**
-- ✅ Fixed `test_translation_unavailable()` to verify TTS receives original text when translation fails
-- ✅ Added `test_file_size_exact_boundary_conditions()` for 10MB limit edge cases
-- ✅ Fixed assertion logic in `test_narrator_create_prompt_with_panel_context()`
-- ✅ Strengthened error message validation in `test_tts_client_initialization_failure()`
-- ✅ Renamed `test_black_image()` → `test_empty_text_validation()` for clarity
+**Unit Tests** (`test_interface_unit.py`, `test_llm_narrator_unit.py`, `test_tasks_unit.py`)
+- Test individual functions in isolation
+- Mock all external dependencies (APIs, file I/O)
+- Focus on validation logic, error handling, edge cases
+- Fast execution, no API costs
 
-**New Tests Added:**
-- ✅ `test_ocr_with_actual_black_image()` - Real OCR test (skipped by default, requires API credentials)
-- ✅ Real translation integration tests with pytest overrides and model file detection
-- ✅ Subprocess timeout/failure handling tests for translation
-- ✅ Clarified `test_parallel_pipeline_execution_smoke_test()` limitations (doesn't test real race conditions)
+**Integration Tests** (`test_pipeline_integration.py`, `test_translation_integration.py`)
+- Test how components work together
+- Mock external APIs but test real orchestration logic
+- Verify data flows correctly between stages
+- Test graceful degradation (fallbacks when services fail)
 
-**Removed:**
-- ❌ Deleted useless tests that only checked if functions exist
-
-### Test Types Explained
-
-- **Unit Tests**: Test individual functions in isolation (validation, error handling, business logic)
-- **Integration Tests**: Test how components work together (pipeline orchestration, data flow, real APIs with pytest overrides)
-- **Edge Cases**: Test system behavior under stress or unusual conditions (empty data, parallel execution, API failures, boundary conditions)
+**Edge Case Tests** (`test_extreme_cases.py`)
+- Test unusual scenarios that may occur in production
+- Include one real API test (skipped by default)
+- Test boundary conditions and stress scenarios
+- Note: Parallel execution test uses mocks (doesn't catch real race conditions)
 
 ## Project Structure
 
