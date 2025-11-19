@@ -91,6 +91,75 @@ docker-compose up --build -d
 | `USE_LLM_NARRATOR` | `true` for GPT-4, `false` for OCR only | `true` |
 | `REDIS_HOST` | Redis hostname | `localhost` |
 
+## Testing
+
+The project includes a comprehensive test suite with **33 tests** covering unit tests, integration tests, and edge cases.
+
+### Setup Test Environment
+
+```bash
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install testing dependencies
+pip install pytest pytest-mock
+```
+
+### Running Tests
+
+```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Run all tests (33 tests)
+python -m pytest tests/ -v
+
+# Run with detailed output
+python -m pytest tests/ -v --tb=short
+
+# Run specific test file
+python -m pytest tests/test_interface_unit.py -v
+
+# Run specific test
+python -m pytest tests/test_pipeline_integration.py::test_full_pipeline_with_translation -v
+```
+
+### Test Coverage
+
+| Test File | Tests | Type | What It Tests |
+|-----------|-------|------|---------------|
+| `test_interface_unit.py` | 6 | **Unit** | File validation, size limits, supported extensions |
+| `test_llm_narrator_unit.py` | 5 | **Unit** | LLM narration logic, prompt generation, error handling |
+| `test_tasks_unit.py` | 14 | **Unit** | OCR, translation, TTS task validation and edge cases |
+| `test_pipeline_integration.py` | 5 | **Integration** | End-to-end pipeline orchestration and data flow |
+| `test_extreme_cases.py` | 4 | **Edge Cases** | Empty images, concurrency, service failures |
+| `test_translation_integration.py` | 2 | **Integration** | Translation module availability |
+
+### Expected Output
+
+```
+============================= test session starts ==============================
+platform darwin -- Python 3.13.5, pytest-9.0.1, pluggy-1.6.0
+collected 33 items
+
+tests/test_extreme_cases.py::test_black_image PASSED                     [  3%]
+tests/test_extreme_cases.py::test_multiple_users_parallel PASSED         [  6%]
+...
+tests/test_translation_integration.py::test_translation_availability_check PASSED [100%]
+
+============================== 33 passed in 1.90s ===============================
+```
+
+### Test Types Explained
+
+- **Unit Tests**: Test individual functions in isolation (validation, error handling, business logic)
+- **Integration Tests**: Test how components work together (pipeline orchestration, data flow)
+- **Edge Cases**: Test system behavior under stress or unusual conditions (empty data, concurrent users, API failures)
+
 ## Project Structure
 
 > **📝 Note**: All main Python files contain detailed docstrings explaining their purpose, architecture role, and key functions. Use `help(module_name)` or read the module headers for comprehensive documentation.

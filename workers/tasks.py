@@ -98,13 +98,14 @@ def process_translation_task(text, src_lang="en", tgt_lang="nl"):
     Returns:
         dict: Translation result and metadata
     """
-    logger.info(f"[WORKER] Processing translation task ({len(text)} chars, {src_lang} -> {tgt_lang})")
-
+    # Validate input before logging (to avoid len(None) error)
     if not text:
         return {
             "success": False,
             "error": "No text provided for translation"
         }
+
+    logger.info(f"[WORKER] Processing translation task ({len(text)} chars, {src_lang} -> {tgt_lang})")
 
     try:
         # Check if translation is available
@@ -147,6 +148,13 @@ def process_tts_task(text, language_code='en-US', voice_name='en-US-Neural2-F'):
     Returns:
         dict: Audio file ID and metadata
     """
+    # Validate input before logging (to avoid len(None) error)
+    if not text:
+        return {
+            "success": False,
+            "error": "No text provided"
+        }
+
     print(f"[WORKER] Processing TTS task ({len(text)} chars, voice={voice_name})")
 
     try:
@@ -155,12 +163,6 @@ def process_tts_task(text, language_code='en-US', voice_name='en-US-Neural2-F'):
         return {
             "success": False,
             "error": f"TTS client not initialized: {exc}"
-        }
-
-    if not text:
-        return {
-            "success": False,
-            "error": "No text provided"
         }
 
     try:
