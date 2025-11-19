@@ -245,6 +245,7 @@ mlruns/
 
 # Translation Model (1GB+ files)
 model/
+!model/*.py
 model_step_*.pt
 *.pt
 
