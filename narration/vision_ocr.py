@@ -1,7 +1,31 @@
 #!/usr/bin/env python3
 """
-Comic Reader with Speech Bubble Detection and Human-Like Reading Order
-Enhanced version with speech bubble detection, dialogue ordering, and character attribution
+Comic Text Extraction Module - OCR Fallback and Legacy Support
+
+This module provides Google Cloud Vision-based OCR text extraction from comic images.
+It serves as the fallback when LLM narration is unavailable or disabled.
+
+Features:
+    - Speech bubble detection and extraction
+    - Panel-aware reading order (left-to-right, top-to-bottom)
+    - Character dialogue attribution
+    - Human-like text ordering for natural flow
+    - Integration with Google Cloud Vision API
+
+Mode Selection:
+    - Primary: Uses LLM narrator (narration/llm_narrator.py) if available
+    - Fallback: Falls back to this OCR-based extraction automatically
+
+Key Classes:
+    - ComicOCR: Main class for extracting text from comic images
+    - get_vision_client(): Lazy-initialized Google Vision client (fork-safe)
+    - get_tts_client(): Lazy-initialized Google TTS client (fork-safe)
+
+The module also provides directory management (AUDIO_DIR, TEMP_DIR) and
+credential setup for Google Cloud services.
+
+Note: This was formerly the main text extraction method before LLM narration
+was introduced. Now primarily used as a reliable fallback option.
 """
 
 import os

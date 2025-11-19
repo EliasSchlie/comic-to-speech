@@ -1,7 +1,30 @@
 #!/usr/bin/env python3
 """
-Interface Server - Handles web UI and user requests
-This server does NOT process AI tasks directly - it enqueues them to workers
+Interface Server - Web UI and API Gateway for Comic-to-Speech System
+
+This Flask-based server provides the user-facing interface for the distributed
+comic processing pipeline. It handles:
+
+Responsibilities:
+    - Serve web UI for comic uploads
+    - Accept comic image uploads via POST /api/process-comic
+    - Enqueue processing jobs to Redis queue
+    - Poll job status and return results via GET /api/job-status/<id>
+    - Serve generated audio files via GET /api/audio/<id>
+
+Architecture Role:
+    This server does NOT perform AI processing directly. It acts as a lightweight
+    gateway that enqueues jobs to Redis, where separate AI worker processes
+    execute the actual OCR, LLM narration, translation, and TTS tasks.
+
+    User → Interface Server → Redis Queue → AI Workers
+                ↑__________________|
+                  (Poll job status)
+
+Usage:
+    python server/interface_server.py
+
+Then access http://localhost:5001 in your browser.
 """
 
 import sys

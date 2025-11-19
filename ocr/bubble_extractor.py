@@ -1,7 +1,28 @@
 #!/usr/bin/env python3
 """
-Comic Bubble Text Extractor
-Specialized for detecting and reading speech bubbles in comics
+Speech Bubble Detection and Text Extraction Utility
+
+This module provides specialized tools for detecting and extracting text from
+speech bubbles in comic book images. It combines computer vision techniques
+with OCR to identify dialogue regions.
+
+Features:
+    - Speech bubble contour detection using OpenCV
+    - Bubble region isolation and preprocessing
+    - Text extraction from bubble regions using Tesseract OCR
+    - Confidence scoring for detected text
+    - Integration with Google Cloud Vision API for enhanced accuracy
+
+Key Classes:
+    - SpeechBubbleDetector: Main class for bubble detection and text extraction
+
+Use Cases:
+    - Extracting dialogue from traditional comic panels
+    - Detecting speech bubble locations for layout analysis
+    - Preprocessing bubble regions for better OCR accuracy
+
+This is a utility module used by the main OCR pipeline (narration/vision_ocr.py)
+to improve text extraction quality specifically for comic book dialogue.
 """
 import os
 import sys

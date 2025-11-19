@@ -1,7 +1,30 @@
 #!/usr/bin/env python3
 """
-Advanced Comic OCR with Panel Detection
-Handles comic panel layouts and speech bubble ordering
+Advanced Comic Panel Detection and Reading Order Analysis
+
+This module provides sophisticated panel detection and text ordering for comic
+book pages with complex layouts. It handles multi-panel pages and determines
+optimal reading order.
+
+Features:
+    - Automatic comic panel detection using edge detection and contours
+    - Panel boundary identification and isolation
+    - Reading order determination (left-to-right, top-to-bottom)
+    - Text block spatial analysis within panels
+    - Speech bubble ordering for natural dialogue flow
+    - Integration with Google Cloud Vision API
+
+Key Classes:
+    - ComicOCR: Main class for panel-aware text extraction
+
+Algorithms:
+    - Edge detection for panel boundaries
+    - Contour analysis for panel regions
+    - Spatial sorting for reading order
+    - Bounding box analysis for text positioning
+
+This module is used by the main OCR pipeline to handle complex comic page
+layouts where simple top-to-bottom text extraction would fail.
 """
 import os
 import sys

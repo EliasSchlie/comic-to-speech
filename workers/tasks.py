@@ -1,7 +1,25 @@
 #!/usr/bin/env python3
 """
-Task definitions for distributed comic-to-speech processing
-This module contains the actual AI processing tasks that workers execute
+Task Definitions for Distributed Comic-to-Speech Processing
+
+This module defines the AI processing tasks executed by worker processes.
+Workers consume jobs from Redis queues and execute these functions.
+
+Available Tasks:
+    - process_ocr_task(): Extract text from comic images using LLM or OCR
+    - process_translation_task(): Translate text EN→NL using OpenNMT model
+    - process_tts_task(): Generate speech audio from text using Google Cloud TTS
+    - process_comic_full_pipeline(): Complete end-to-end pipeline (all above)
+
+Task Flow:
+    1. Interface server enqueues job to Redis
+    2. Worker picks up job from queue
+    3. Worker calls task function defined here
+    4. Task processes image/text using AI APIs
+    5. Result stored in Redis and returned to interface server
+
+Each task is designed to be idempotent and can handle failures gracefully.
+Workers import this module to execute the actual AI processing logic.
 """
 
 from google.cloud import texttospeech

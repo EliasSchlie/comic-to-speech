@@ -93,6 +93,8 @@ docker-compose up --build -d
 
 ## Project Structure
 
+> **📝 Note**: All main Python files contain detailed docstrings explaining their purpose, architecture role, and key functions. Use `help(module_name)` or read the module headers for comprehensive documentation.
+
 ### Core Application Modules
 
 | Module | Purpose |

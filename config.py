@@ -1,6 +1,19 @@
 #!/usr/bin/env python3
 """
-Configuration file for distributed comic-to-speech application
+Central Configuration Module for Comic-to-Speech Application
+
+This module manages all configuration settings for the distributed architecture:
+- Redis queue connection (orchestrator between interface and workers)
+- API credentials (OpenAI for LLM narration, Google Cloud for Vision/TTS)
+- Feature flags (LLM vs OCR mode)
+- File storage paths and cleanup settings
+- Queue names and job timeout configurations
+
+Architecture:
+    Interface Server → Redis Queue → AI Workers
+
+Settings are loaded from environment variables (.env file) with sensible defaults.
+Import this module to access configuration across all components.
 """
 
 import os
