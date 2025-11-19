@@ -28,8 +28,8 @@ if "pytest" in sys.modules:
     def translate_text(text, src_lang="en", tgt_lang="nl"):
         """Return a predictable dummy translation for testing."""
         if isinstance(text, list):
-            return [f"[dummy-{t}]" for t in text]
-        return f"[dummy-{text}]"
+            return [f"[dummy-{t}]" if t else "" for t in text]
+        return "" if not text else f"[dummy-{text}]"
 
     def is_translation_available(*args, **kwargs):
         return True

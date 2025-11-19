@@ -1,3 +1,13 @@
+"""
+Integration tests for the full comic processing pipeline.
+
+Tests the orchestration logic that connects OCR -> Translation -> TTS stages,
+verifying that data flows correctly between components and that the pipeline
+handles failures gracefully at each stage.
+
+All external dependencies (OCR, Translation, TTS) are mocked to focus on
+testing the pipeline orchestration rather than individual component behavior.
+"""
 from unittest.mock import patch
 from workers.tasks import process_comic_full_pipeline
 
@@ -6,10 +16,7 @@ from workers.tasks import process_comic_full_pipeline
 @patch("workers.tasks.process_translation_task")
 @patch("workers.tasks.process_tts_task")
 def test_full_pipeline_with_translation(mock_tts, mock_trans, mock_ocr):
-    """
-    Integration test: Full pipeline with translation enabled
-    Tests orchestration logic: OCR -> Translation -> TTS with translated text
-    """
+    """Verifies full pipeline executes OCR -> Translation -> TTS with translated text"""
 
     # Mock OCR to return extracted text
     mock_ocr.return_value = {
@@ -47,7 +54,7 @@ def test_full_pipeline_with_translation(mock_tts, mock_trans, mock_ocr):
         target_language="nl"
     )
 
-    # Verify orchestration logic: all steps completed
+    # Verify all steps completed
     assert result["success"] is True
     assert result["extracted_text"] == "Hello world"
     assert result["translated_text"] == "Hallo wereld"
@@ -55,17 +62,14 @@ def test_full_pipeline_with_translation(mock_tts, mock_trans, mock_ocr):
     assert result["translation_enabled"] is True
     assert result["target_language"] == "nl"
 
-    # Verify TTS received the TRANSLATED text (orchestration logic)
+    # Verify TTS received the translated text
     mock_tts.assert_called_once_with("Hallo wereld", "nl-NL", "nl-NL-Standard-A")
 
 
 @patch("workers.tasks.process_ocr_task")
 @patch("workers.tasks.process_tts_task")
 def test_full_pipeline_without_translation(mock_tts, mock_ocr):
-    """
-    Integration test: Pipeline without translation
-    Tests that translation step is skipped when translate=False
-    """
+    """Verifies pipeline skips translation step when translate=False"""
 
     mock_ocr.return_value = {
         "success": True,
@@ -91,12 +95,12 @@ def test_full_pipeline_without_translation(mock_tts, mock_ocr):
         translate=False
     )
 
-    # Verify translation was skipped (orchestration logic)
+    # Verify translation was skipped
     assert result["success"] is True
     assert result["extracted_text"] == "Hello world"
     assert "translated_text" not in result or result.get("translation_enabled") is None
 
-    # Verify TTS received the ORIGINAL text (orchestration logic)
+    # Verify TTS received the original text
     mock_tts.assert_called_once()
     call_args = mock_tts.call_args[0]
     assert call_args[0] == "Hello world"
@@ -104,10 +108,7 @@ def test_full_pipeline_without_translation(mock_tts, mock_ocr):
 
 @patch("workers.tasks.process_ocr_task")
 def test_pipeline_stops_on_ocr_failure(mock_ocr):
-    """
-    Integration test: Pipeline should stop if OCR fails
-    Tests early-exit orchestration logic
-    """
+    """Verifies pipeline stops early if OCR fails"""
 
     mock_ocr.return_value = {
         "success": False,
@@ -116,7 +117,7 @@ def test_pipeline_stops_on_ocr_failure(mock_ocr):
 
     result = process_comic_full_pipeline(b"bad_image")
 
-    # Verify pipeline stopped at OCR (orchestration logic)
+    # Verify pipeline stopped at OCR
     assert result["success"] is False
     assert "OCR failed" in result["error"]
     # No other fields should exist
@@ -127,10 +128,7 @@ def test_pipeline_stops_on_ocr_failure(mock_ocr):
 @patch("workers.tasks.process_translation_task")
 @patch("workers.tasks.process_tts_task")
 def test_pipeline_uses_original_text_when_translation_fails(mock_tts, mock_trans, mock_ocr):
-    """
-    Integration test: Graceful degradation when translation fails
-    Tests that pipeline continues with original text (orchestration logic)
-    """
+    """Verifies pipeline continues with original text when translation fails"""
 
     mock_ocr.return_value = {
         "success": True,
@@ -162,11 +160,11 @@ def test_pipeline_uses_original_text_when_translation_fails(mock_tts, mock_trans
         target_language="nl"
     )
 
-    # Verify graceful degradation (orchestration logic)
-    assert result["success"] is True  # Pipeline should still succeed
+    # Pipeline should still succeed
+    assert result["success"] is True
     assert result["translation_error"] == "Translation model not loaded"
 
-    # Verify TTS received ORIGINAL text, not translated (orchestration logic)
+    # Verify TTS received original text, not translated
     mock_tts.assert_called_once()
     call_args = mock_tts.call_args[0]
     assert call_args[0] == "Original text"
@@ -176,10 +174,7 @@ def test_pipeline_uses_original_text_when_translation_fails(mock_tts, mock_trans
 @patch("workers.tasks.process_translation_task")
 @patch("workers.tasks.process_tts_task")
 def test_pipeline_result_structure_completeness(mock_tts, mock_trans, mock_ocr):
-    """
-    Integration test: Verify complete result structure
-    Tests that all expected fields are present in result
-    """
+    """Verifies all expected fields are present in pipeline result"""
 
     mock_ocr.return_value = {
         "success": True,
@@ -206,7 +201,7 @@ def test_pipeline_result_structure_completeness(mock_tts, mock_trans, mock_ocr):
 
     result = process_comic_full_pipeline(b"image", translate=True)
 
-    # Verify all orchestrated fields are present (orchestration logic)
+    # Verify all required fields are present
     required_fields = [
         "success", "extracted_text", "panel_count", "bubble_count",
         "text_blocks", "confidence", "narration_mode", "audio_id",

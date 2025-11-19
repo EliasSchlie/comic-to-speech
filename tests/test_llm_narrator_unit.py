@@ -1,15 +1,26 @@
+"""
+Unit tests for the LLM-based comic narrator.
+
+Tests the ComicNarrator class which uses OpenAI GPT-4 Vision to generate
+audiobook-style narration from comic images.
+
+Tested functionality:
+- Initialization (requires API key)
+- Base64 image encoding (used for API requests)
+- Prompt generation (with/without panel context)
+- Successful narration with mocked OpenAI responses
+- Error handling when OpenAI API fails (rate limits, network errors)
+
+All OpenAI API calls are mocked to avoid costs and ensure fast, deterministic tests.
+"""
 from unittest.mock import patch, MagicMock
 import pytest
 import base64
 from narration.llm_narrator import ComicNarrator, narrate_panel
 
 
-# ---------------------------
-# Test ComicNarrator Class - Real Logic
-# ---------------------------
-
 def test_narrator_init_without_api_key():
-    """Test that ComicNarrator fails gracefully without API key"""
+    """Verifies ComicNarrator initialization fails without API key"""
     with patch.dict('os.environ', {}, clear=True):
         # Remove OPENAI_API_KEY from environment
         with pytest.raises(ValueError) as exc_info:
@@ -19,46 +30,40 @@ def test_narrator_init_without_api_key():
 
 
 def test_narrator_encode_image_to_base64():
-    """Test base64 encoding logic - actual implementation"""
+    """Verifies image base64 encoding produces correct output"""
     with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
         narrator = ComicNarrator(api_key='test-key')
 
-        # Test actual encoding logic
         test_bytes = b"test image data"
         result = narrator._encode_image_to_base64(test_bytes)
 
-        # Verify it's actually base64 encoded
         assert isinstance(result, str)
         assert result == base64.b64encode(test_bytes).decode('utf-8')
 
-        # Verify it can be decoded back
         decoded = base64.b64decode(result)
         assert decoded == test_bytes
 
 
 def test_narrator_create_prompt_with_panel_context():
-    """Test prompt generation logic with panel numbers"""
+    """Verifies prompt generation includes panel context when provided"""
     with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
         narrator = ComicNarrator(api_key='test-key')
 
-        # Test with panel context
         prompt_with_context = narrator._create_narration_prompt(panel_number=2, total_panels=5)
         assert "panel 2 of 5" in prompt_with_context.lower()
 
-        # Test without panel context
         prompt_without_context = narrator._create_narration_prompt()
-        assert "panel" not in prompt_without_context.lower() or "panel number" not in prompt_without_context.lower()
+        assert "panel 2 of 5" not in prompt_without_context.lower()
+        assert "this is panel" not in prompt_without_context.lower()
 
 
 @patch("narration.llm_narrator.OpenAI")
 def test_narrator_narrate_panel_success(mock_openai):
-    """Test successful narration with mocked OpenAI API"""
+    """Verifies successful narration with mocked OpenAI API"""
     with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
-        # Setup mock OpenAI client
         mock_client = MagicMock()
         mock_openai.return_value = mock_client
 
-        # Mock the API response
         mock_response = MagicMock()
         mock_response.choices[0].message.content = "A dramatic scene unfolds."
         mock_response.usage.total_tokens = 45
@@ -67,13 +72,11 @@ def test_narrator_narrate_panel_success(mock_openai):
         narrator = ComicNarrator(api_key='test-key')
         result = narrator.narrate_panel(b"fake_image", panel_number=1, total_panels=3)
 
-        # Verify success
         assert result["success"] is True
         assert result["narration"] == "A dramatic scene unfolds."
         assert result["tokens_used"] == 45
         assert result["error"] is None
 
-        # Verify API was called with correct parameters
         mock_client.chat.completions.create.assert_called_once()
         call_args = mock_client.chat.completions.create.call_args
         assert call_args.kwargs["model"] == "gpt-4o"
@@ -81,9 +84,8 @@ def test_narrator_narrate_panel_success(mock_openai):
 
 @patch("narration.llm_narrator.OpenAI")
 def test_narrator_narrate_panel_api_error(mock_openai):
-    """Test narration failure handling when OpenAI API fails"""
+    """Verifies narration handles OpenAI API failures gracefully"""
     with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
-        # Setup mock to raise an exception
         mock_client = MagicMock()
         mock_openai.return_value = mock_client
         mock_client.chat.completions.create.side_effect = Exception("API rate limit exceeded")
@@ -91,7 +93,6 @@ def test_narrator_narrate_panel_api_error(mock_openai):
         narrator = ComicNarrator(api_key='test-key')
         result = narrator.narrate_panel(b"fake_image")
 
-        # Verify proper error handling
         assert result["success"] is False
         assert result["narration"] == ""
         assert "rate limit" in result["error"].lower()

@@ -94,72 +94,71 @@ docker-compose up --build -d
 
 ## Testing
 
-The project includes a comprehensive test suite with **40 tests** covering unit tests, integration tests, and edge cases.
+The project includes a comprehensive test suite covering unit tests, integration tests, and edge cases.
 
 ### Setup Test Environment
 
 ```bash
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+# Using uv (recommended)
+uv add --dev pytest pytest-mock pillow
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Install testing dependencies
-pip install pytest pytest-mock
+# Or using pip
+pip install pytest pytest-mock pillow
 ```
 
 ### Running Tests
 
 ```bash
-# Activate virtual environment
-source .venv/bin/activate
-
-# Run all tests (40 tests)
-python -m pytest tests/ -v
+# Run all tests
+uv run pytest tests/ -v
 
 # Run with detailed output
-python -m pytest tests/ -v --tb=short
+uv run pytest tests/ -v --tb=short
 
 # Run specific test file
-python -m pytest tests/test_interface_unit.py -v
+uv run pytest tests/test_interface_unit.py -v
 
 # Run specific test
-python -m pytest tests/test_pipeline_integration.py::test_full_pipeline_with_translation -v
+uv run pytest tests/test_pipeline_integration.py::test_full_pipeline_with_translation -v
+
+# Run tests including expensive API calls (skipped by default)
+uv run pytest tests/test_extreme_cases.py::test_ocr_with_actual_black_image -v
 ```
 
 ### Test Coverage
 
 | Test File | Tests | Type | What It Tests |
 |-----------|-------|------|---------------|
-| `test_interface_unit.py` | 5 | **Unit** | File validation, size limits, supported extensions |
+| `test_interface_unit.py` | 6 | **Unit** | File validation, size limits (including boundary conditions), supported extensions |
 | `test_llm_narrator_unit.py` | 5 | **Unit** | LLM narration logic, prompt generation, error handling |
 | `test_tasks_unit.py` | 12 | **Unit** | OCR, translation, TTS task validation and edge cases |
 | `test_pipeline_integration.py` | 5 | **Integration** | End-to-end pipeline orchestration and data flow |
-| `test_extreme_cases.py` | 4 | **Edge Cases** | Empty images, concurrency, service failures |
-| `test_translation_integration.py` | 9 | **Integration** | Translation interface, batch processing, pipeline compatibility |
+| `test_extreme_cases.py` | 5 | **Edge Cases** | Empty text validation, real OCR tests, parallel execution, service failures |
+| `test_translation_integration.py` | 8 | **Integration** | Real translation tests, subprocess error handling, pytest overrides |
 
-### Expected Output
+### Recent Test Improvements
 
-```
-============================= test session starts ==============================
-platform darwin -- Python 3.13.5, pytest-9.0.1, pluggy-1.6.0
-collected 40 items
+**Fixed Issues:**
+- ✅ Fixed `test_translation_unavailable()` to verify TTS receives original text when translation fails
+- ✅ Added `test_file_size_exact_boundary_conditions()` for 10MB limit edge cases
+- ✅ Fixed assertion logic in `test_narrator_create_prompt_with_panel_context()`
+- ✅ Strengthened error message validation in `test_tts_client_initialization_failure()`
+- ✅ Renamed `test_black_image()` → `test_empty_text_validation()` for clarity
 
-tests/test_extreme_cases.py::test_black_image PASSED                     [  2%]
-tests/test_extreme_cases.py::test_multiple_users_parallel PASSED         [  5%]
-...
-tests/test_translation_integration.py::test_translation_batch_processing PASSED [100%]
+**New Tests Added:**
+- ✅ `test_ocr_with_actual_black_image()` - Real OCR test (skipped by default, requires API credentials)
+- ✅ Real translation integration tests with pytest overrides and model file detection
+- ✅ Subprocess timeout/failure handling tests for translation
+- ✅ Clarified `test_parallel_pipeline_execution_smoke_test()` limitations (doesn't test real race conditions)
 
-============================== 40 passed in 1.70s ===============================
-```
+**Removed:**
+- ❌ Deleted useless tests that only checked if functions exist
 
 ### Test Types Explained
 
 - **Unit Tests**: Test individual functions in isolation (validation, error handling, business logic)
-- **Integration Tests**: Test how components work together (pipeline orchestration, data flow)
-- **Edge Cases**: Test system behavior under stress or unusual conditions (empty data, concurrent users, API failures)
+- **Integration Tests**: Test how components work together (pipeline orchestration, data flow, real APIs with pytest overrides)
+- **Edge Cases**: Test system behavior under stress or unusual conditions (empty data, parallel execution, API failures, boundary conditions)
 
 ## Project Structure
 

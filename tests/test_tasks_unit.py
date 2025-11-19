@@ -1,3 +1,19 @@
+"""
+Unit tests for individual AI task processing functions.
+
+Tests three core worker tasks in isolation:
+- OCR text extraction (process_ocr_task)
+- Translation (process_translation_task)
+- Text-to-speech synthesis (process_tts_task)
+
+Each task is tested for:
+- Success path with valid inputs
+- Error handling with invalid inputs (None, empty strings)
+- Exception handling when underlying services fail
+- Proper result structure (success/error dictionaries)
+
+External dependencies are mocked to isolate task logic from actual API calls.
+"""
 import pytest
 from unittest.mock import patch, MagicMock
 from workers.tasks import (
@@ -6,13 +22,9 @@ from workers.tasks import (
     process_tts_task,
 )
 
-# ---------------------------
-# OCR TASK TESTS
-# ---------------------------
-
 @patch("workers.tasks.ComicOCR")
 def test_ocr_task_success(mock_ocr):
-    """Test successful OCR text extraction from comic image"""
+    """Verifies OCR successfully extracts text from comic image"""
     instance = mock_ocr.return_value
     instance.extract_text.return_value = {
         "text": "Hello",
@@ -34,7 +46,7 @@ def test_ocr_task_success(mock_ocr):
 
 @patch("workers.tasks.ComicOCR")
 def test_ocr_task_failure(mock_ocr):
-    """Test OCR failure handling when extraction fails"""
+    """Verifies OCR handles extraction failures gracefully"""
     instance = mock_ocr.return_value
     instance.extract_text.side_effect = Exception("OCR boom")
 
@@ -45,14 +57,10 @@ def test_ocr_task_failure(mock_ocr):
     assert "OCR boom" in result["error"] or "OCR" in result["error"]
 
 
-# ---------------------------
-# TRANSLATION TESTS
-# ---------------------------
-
 @patch("workers.tasks.is_translation_available", return_value=True)
 @patch("workers.tasks.translate_text")
 def test_translation_task_success(mock_trans, _):
-    """Test successful translation"""
+    """Verifies successful text translation"""
     mock_trans.return_value = "Hallo wereld"
 
     result = process_translation_task("Hello world", src_lang="en", tgt_lang="nl")
@@ -66,7 +74,7 @@ def test_translation_task_success(mock_trans, _):
 
 @patch("workers.tasks.is_translation_available", return_value=False)
 def test_translation_task_unavailable(_):
-    """Test translation when model is not available"""
+    """Verifies translation handles unavailable model gracefully"""
     result = process_translation_task("Hello")
 
     assert result["success"] is False
@@ -74,10 +82,7 @@ def test_translation_task_unavailable(_):
 
 
 def test_translation_task_empty_text():
-    """
-    EDGE CASE: Test translation with empty text
-    This tests the validation logic in process_translation_task (line 103-107)
-    """
+    """Verifies translation rejects empty text input"""
     result = process_translation_task("")
 
     assert result["success"] is False
@@ -85,10 +90,7 @@ def test_translation_task_empty_text():
 
 
 def test_translation_task_none_text():
-    """
-    EDGE CASE: Test translation with None text
-    This tests the validation logic handles None values
-    """
+    """Verifies translation handles None text input"""
     result = process_translation_task(None)
 
     assert result["success"] is False
@@ -98,25 +100,20 @@ def test_translation_task_none_text():
 @patch("workers.tasks.is_translation_available", return_value=True)
 @patch("workers.tasks.translate_text")
 def test_translation_task_exception_handling(mock_trans, _):
-    """Test that translation exceptions are properly caught and reported"""
+    """Verifies translation exceptions are caught and reported"""
     mock_trans.side_effect = RuntimeError("Translation service timeout")
 
     result = process_translation_task("Hello")
 
     assert result["success"] is False
     assert "timeout" in result["error"].lower()
-    # Original text should be preserved in error case
     assert result["original_text"] == "Hello"
 
-
-# ---------------------------
-# TTS TESTS
-# ---------------------------
 
 @patch("workers.tasks.get_tts_client")
 @patch("workers.tasks.AUDIO_DIR")
 def test_tts_success(mock_audio_dir, mock_get_tts):
-    """Test successful text-to-speech audio generation"""
+    """Verifies successful text-to-speech audio generation"""
     # Mock the TTS client
     client = MagicMock()
     mock_get_tts.return_value = client
@@ -141,7 +138,7 @@ def test_tts_success(mock_audio_dir, mock_get_tts):
 
 @patch("workers.tasks.get_tts_client")
 def test_tts_failure(mock_get_tts):
-    """Test TTS failure handling when synthesis fails"""
+    """Verifies TTS handles synthesis failures gracefully"""
     client = MagicMock()
     mock_get_tts.return_value = client
 
@@ -155,10 +152,7 @@ def test_tts_failure(mock_get_tts):
 
 
 def test_tts_empty_text():
-    """
-    EDGE CASE: Test TTS with empty text
-    This tests the validation logic in process_tts_task (line 160-164)
-    """
+    """Verifies TTS rejects empty text input"""
     result = process_tts_task("")
 
     assert result["success"] is False
@@ -166,10 +160,7 @@ def test_tts_empty_text():
 
 
 def test_tts_none_text():
-    """
-    EDGE CASE: Test TTS with None text
-    This tests the validation logic handles None values
-    """
+    """Verifies TTS handles None text input"""
     result = process_tts_task(None)
 
     assert result["success"] is False
@@ -178,13 +169,10 @@ def test_tts_none_text():
 
 @patch("workers.tasks.get_tts_client")
 def test_tts_client_initialization_failure(mock_get_tts):
-    """
-    EDGE CASE: Test TTS when client initialization fails
-    This tests error handling when get_tts_client() raises an exception
-    """
+    """Verifies TTS handles client initialization failures"""
     mock_get_tts.side_effect = RuntimeError("Google credentials not found")
 
     result = process_tts_task("Hello world")
 
     assert result["success"] is False
-    assert "not initialized" in result["error"].lower() or "credentials" in result["error"].lower()
+    assert "not initialized" in result["error"].lower()
