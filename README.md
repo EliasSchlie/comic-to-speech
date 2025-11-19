@@ -94,7 +94,7 @@ docker-compose up --build -d
 
 ## Testing
 
-The project includes a comprehensive test suite with **33 tests** covering unit tests, integration tests, and edge cases.
+The project includes a comprehensive test suite with **40 tests** covering unit tests, integration tests, and edge cases.
 
 ### Setup Test Environment
 
@@ -116,7 +116,7 @@ pip install pytest pytest-mock
 # Activate virtual environment
 source .venv/bin/activate
 
-# Run all tests (33 tests)
+# Run all tests (40 tests)
 python -m pytest tests/ -v
 
 # Run with detailed output
@@ -133,26 +133,26 @@ python -m pytest tests/test_pipeline_integration.py::test_full_pipeline_with_tra
 
 | Test File | Tests | Type | What It Tests |
 |-----------|-------|------|---------------|
-| `test_interface_unit.py` | 6 | **Unit** | File validation, size limits, supported extensions |
+| `test_interface_unit.py` | 5 | **Unit** | File validation, size limits, supported extensions |
 | `test_llm_narrator_unit.py` | 5 | **Unit** | LLM narration logic, prompt generation, error handling |
-| `test_tasks_unit.py` | 14 | **Unit** | OCR, translation, TTS task validation and edge cases |
+| `test_tasks_unit.py` | 12 | **Unit** | OCR, translation, TTS task validation and edge cases |
 | `test_pipeline_integration.py` | 5 | **Integration** | End-to-end pipeline orchestration and data flow |
 | `test_extreme_cases.py` | 4 | **Edge Cases** | Empty images, concurrency, service failures |
-| `test_translation_integration.py` | 2 | **Integration** | Translation module availability |
+| `test_translation_integration.py` | 9 | **Integration** | Translation interface, batch processing, pipeline compatibility |
 
 ### Expected Output
 
 ```
 ============================= test session starts ==============================
 platform darwin -- Python 3.13.5, pytest-9.0.1, pluggy-1.6.0
-collected 33 items
+collected 40 items
 
-tests/test_extreme_cases.py::test_black_image PASSED                     [  3%]
-tests/test_extreme_cases.py::test_multiple_users_parallel PASSED         [  6%]
+tests/test_extreme_cases.py::test_black_image PASSED                     [  2%]
+tests/test_extreme_cases.py::test_multiple_users_parallel PASSED         [  5%]
 ...
-tests/test_translation_integration.py::test_translation_availability_check PASSED [100%]
+tests/test_translation_integration.py::test_translation_batch_processing PASSED [100%]
 
-============================== 33 passed in 1.90s ===============================
+============================== 40 passed in 1.70s ===============================
 ```
 
 ### Test Types Explained
