@@ -10,6 +10,12 @@ AI-powered comic book narration system that transforms visual comics into immers
 - **⚡ Distributed Architecture**: Redis-based task queue with parallel AI workers.
 - **🐳 Docker Ready**: Full containerized setup for easy deployment.
 
+## Demo
+
+[![Demo Video](https://img.youtube.com/vi/7g8XIVirimQ/0.jpg)](https://youtu.be/7g8XIVirimQ)
+
+Watch the system in action: [Comic-to-Speech Demo](https://youtu.be/7g8XIVirimQ)
+
 ## Architecture
 
 ```mermaid
