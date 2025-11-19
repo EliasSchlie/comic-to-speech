@@ -56,8 +56,9 @@ cp .env.example .env
 ### 2. Translation Model (Important)
 The translation model (~1GB) is not in the repo. 
 1. Download from [Google Drive](https://drive.google.com/file/d/1yEbxA-JgA2Dq-uELBoZITTPT0o3pKXBy/view?usp=share_link).
-2. Extract contents directly into `model/` folder.
-   - Structure should be: `model/model_step_22000.pt`, `model/bpe.model`, etc.
+2. Copy **only the model files** (not `.py` files) into the `model/` folder.
+   - Copy: `model_step_22000.pt`, `bpe.model`, and other data files
+   - **Do NOT copy** `.py` files - these are already in the repo
 
 ### 3. Run with Docker (Recommended)
 This starts the Redis orchestrator, Interface server, and AI Workers.
