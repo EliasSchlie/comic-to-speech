@@ -19,14 +19,12 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
-COPY interface_server.py .
+COPY server/ ./server/
+COPY workers/ ./workers/
+COPY narration/ ./narration/
+COPY translation/ ./translation/
 COPY config.py .
-COPY comic_reader_fixed.py .
-COPY llm_narrator.py .
-COPY tasks.py .
-
-# Copy translation module (needed for task definitions)
-COPY ocr_comic_to_text/ ./ocr_comic_to_text/
+COPY .env .
 
 # Create directories
 RUN mkdir -p audio_files temp_images
@@ -38,4 +36,4 @@ ENV PYTHONPATH=/app:$PYTHONPATH
 EXPOSE 5001
 
 # Run interface server
-CMD ["python", "interface_server.py"]
+CMD ["python", "server/interface_server.py"]

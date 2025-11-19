@@ -1,9 +1,9 @@
 from unittest.mock import patch
-from tasks import process_comic_full_pipeline
+from workers.tasks import process_comic_full_pipeline
 
-@patch("tasks.process_ocr_task")
-@patch("tasks.process_translation_task")
-@patch("tasks.process_tts_task")
+@patch("workers.tasks.process_ocr_task")
+@patch("workers.tasks.process_translation_task")
+@patch("workers.tasks.process_tts_task")
 def test_full_pipeline(mock_tts, mock_trans, mock_ocr):
 
     mock_ocr.return_value = {

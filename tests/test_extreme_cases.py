@@ -1,12 +1,12 @@
 import pytest
 from unittest.mock import patch
-from tasks import process_comic_full_pipeline, process_ocr_task
+from workers.tasks import process_comic_full_pipeline, process_ocr_task
 
 # ---------------------------
 # BLACK IMAGE TEST
 # ---------------------------
 
-@patch("tasks.process_ocr_task")
+@patch("workers.tasks.process_ocr_task")
 def test_black_image(mock_ocr):
     mock_ocr.return_value = {
         "success": True,
@@ -27,8 +27,8 @@ def test_black_image(mock_ocr):
 # MULTIPLE USERS TEST (Concurrency simulation)
 # ---------------------------
 
-@patch("tasks.process_ocr_task", return_value={"success": True, "extracted_text": "Hi", "panel_count":1, "bubble_count":1, "text_blocks":[], "confidence":0.99})
-@patch("tasks.process_tts_task", return_value={"success": True, "audio_id":"x", "audio_url":"/x", "characters_used":2})
+@patch("workers.tasks.process_ocr_task", return_value={"success": True, "extracted_text": "Hi", "panel_count":1, "bubble_count":1, "text_blocks":[], "confidence":0.99})
+@patch("workers.tasks.process_tts_task", return_value={"success": True, "audio_id":"x", "audio_url":"/x", "characters_used":2})
 def test_multiple_users_parallel(_, __):
     import concurrent.futures
 
@@ -46,8 +46,8 @@ def test_multiple_users_parallel(_, __):
 # TRANSLATION DOWN
 # ---------------------------
 
-@patch("tasks.process_ocr_task", return_value={"success": True, "extracted_text": "Hello", "panel_count":1,"bubble_count":1,"text_blocks":[], "confidence":0.9})
-@patch("tasks.process_translation_task", return_value={"success": False, "error": "Translation unavailable"})
+@patch("workers.tasks.process_ocr_task", return_value={"success": True, "extracted_text": "Hello", "panel_count":1,"bubble_count":1,"text_blocks":[], "confidence":0.9})
+@patch("workers.tasks.process_translation_task", return_value={"success": False, "error": "Translation unavailable"})
 def test_translation_unavailable(_, __):
     result = process_comic_full_pipeline(b"img", translate=True)
 
@@ -58,9 +58,9 @@ def test_translation_unavailable(_, __):
 # TTS QUOTA FAILS
 # ---------------------------
 
-@patch("tasks.process_ocr_task", return_value={"success": True, "extracted_text": "Text", "panel_count":1,"bubble_count":1,"text_blocks":[], "confidence":0.9})
-@patch("tasks.process_translation_task", return_value={"success": True, "translated_text": "Text"})
-@patch("tasks.process_tts_task", return_value={"success": False, "error": "Quota exceeded"})
+@patch("workers.tasks.process_ocr_task", return_value={"success": True, "extracted_text": "Text", "panel_count":1,"bubble_count":1,"text_blocks":[], "confidence":0.9})
+@patch("workers.tasks.process_translation_task", return_value={"success": True, "translated_text": "Text"})
+@patch("workers.tasks.process_tts_task", return_value={"success": False, "error": "Quota exceeded"})
 def test_tts_quota(_, __, ___):
     result = process_comic_full_pipeline(b"img", translate=True)
 

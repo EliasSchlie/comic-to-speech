@@ -8,8 +8,8 @@ from google.cloud import texttospeech
 import uuid
 import logging
 
-# Import the OCR processing logic from the original file
-from comic_reader_fixed import (
+# Import the OCR processing logic from the narration module
+from narration.vision_ocr import (
     ComicOCR,
     setup_credentials,
     AUDIO_DIR,
@@ -18,7 +18,7 @@ from comic_reader_fixed import (
 )
 
 # Import translation module
-from ocr_comic_to_text.translation_model import translate_text, is_translation_available
+from translation.translator import translate_text, is_translation_available
 
 # Ensure credentials are set up
 setup_credentials()

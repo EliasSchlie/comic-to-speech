@@ -1,7 +1,7 @@
 from unittest.mock import patch
-from llm_narrator import narrate_panel
+from narration.llm_narrator import narrate_panel
 
-@patch("llm_narrator.get_openai_client")
+@patch("narration.llm_narrator.get_openai_client")
 def test_narrate_panel_success(mock_client):
     instance = mock_client.return_value
     instance.responses.return_value.create.return_value = {
@@ -14,7 +14,7 @@ def test_narrate_panel_success(mock_client):
     assert "Narration" in result["narration"]
 
 
-@patch("llm_narrator.get_openai_client")
+@patch("narration.llm_narrator.get_openai_client")
 def test_narrate_panel_failure(mock_client):
     instance = mock_client.return_value
     instance.responses.return_value.create.side_effect = Exception("LLM error")

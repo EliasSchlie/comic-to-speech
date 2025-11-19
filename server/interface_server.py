@@ -73,10 +73,10 @@ ocr_queue = Queue('ocr', connection=redis_conn) if redis_conn else None
 tts_queue = Queue('tts', connection=redis_conn) if redis_conn else None
 default_queue = Queue('default', connection=redis_conn) if redis_conn else None
 
-# Directories
-AUDIO_DIR = Path("audio_files")
+# Directories - use absolute paths to avoid issues with Flask's send_file
+AUDIO_DIR = Path("/app/audio_files")
 AUDIO_DIR.mkdir(exist_ok=True)
-TEMP_DIR = Path("temp_images")
+TEMP_DIR = Path("/app/temp_images")
 TEMP_DIR.mkdir(exist_ok=True)
 
 

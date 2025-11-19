@@ -1,4 +1,4 @@
-from tasks import translate_text, is_translation_available
+from workers.tasks import translate_text, is_translation_available
 
 def test_translation():
     # No API calls here — just ensure function exists and returns a fallback string

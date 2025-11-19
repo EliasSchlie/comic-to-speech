@@ -1,5 +1,3 @@
-version: '3.8'
-
 # This docker-compose setup simulates 3 separate servers
 # Each service runs in its own container with a separate network address
 
@@ -23,14 +21,16 @@ services:
   # ===== SERVER 2: Interface Server =====
   interface:
     build:
-      context: .
-      dockerfile: Dockerfile.interface
+      context: ..
+      dockerfile: docker/Dockerfile.interface
     container_name: comic_interface_server
     ports:
       - "5001:5001"
     depends_on:
       redis:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       - REDIS_HOST=172.25.0.10  # Redis container IP
       - REDIS_PORT=6379
@@ -41,18 +41,20 @@ services:
       comic_network:
         ipv4_address: 172.25.0.20
     volumes:
-      - ./audio_files:/app/audio_files
-      - ./temp_images:/app/temp_images
+      - ../audio_files:/app/audio_files
+      - ../temp_images:/app/temp_images
 
   # ===== SERVER 3: AI Worker (Instance 1) =====
   worker1:
     build:
-      context: .
-      dockerfile: Dockerfile.worker
+      context: ..
+      dockerfile: docker/Dockerfile.worker
     container_name: comic_ai_worker_1
     depends_on:
       redis:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       - REDIS_HOST=172.25.0.10  # Redis container IP
       - REDIS_PORT=6379
@@ -64,19 +66,21 @@ services:
       comic_network:
         ipv4_address: 172.25.0.30
     volumes:
-      - ./credentials.json:/app/credentials.json:ro
-      - ./audio_files:/app/audio_files
-      - ./temp_images:/app/temp_images
+      - ../credentials.json:/app/credentials.json:ro
+      - ../audio_files:/app/audio_files
+      - ../temp_images:/app/temp_images
 
   # ===== OPTIONAL: Additional AI Worker (Instance 2) =====
   worker2:
     build:
-      context: .
-      dockerfile: Dockerfile.worker
+      context: ..
+      dockerfile: docker/Dockerfile.worker
     container_name: comic_ai_worker_2
     depends_on:
       redis:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       - REDIS_HOST=172.25.0.10  # Redis container IP
       - REDIS_PORT=6379
@@ -88,19 +92,21 @@ services:
       comic_network:
         ipv4_address: 172.25.0.31
     volumes:
-      - ./credentials.json:/app/credentials.json:ro
-      - ./audio_files:/app/audio_files
-      - ./temp_images:/app/temp_images
+      - ../credentials.json:/app/credentials.json:ro
+      - ../audio_files:/app/audio_files
+      - ../temp_images:/app/temp_images
 
   # ===== OPTIONAL: Additional AI Worker (Instance 3) =====
   worker3:
     build:
-      context: .
-      dockerfile: Dockerfile.worker
+      context: ..
+      dockerfile: docker/Dockerfile.worker
     container_name: comic_ai_worker_3
     depends_on:
       redis:
         condition: service_healthy
+    env_file:
+      - ../.env
     environment:
       - REDIS_HOST=172.25.0.10  # Redis container IP
       - REDIS_PORT=6379
@@ -112,9 +118,9 @@ services:
       comic_network:
         ipv4_address: 172.25.0.32
     volumes:
-      - ./credentials.json:/app/credentials.json:ro
-      - ./audio_files:/app/audio_files
-      - ./temp_images:/app/temp_images
+      - ../credentials.json:/app/credentials.json:ro
+      - ../audio_files:/app/audio_files
+      - ../temp_images:/app/temp_images
 
 networks:
   comic_network:

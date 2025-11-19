@@ -63,6 +63,7 @@ The translation model (~1GB) is not in the repo.
 This starts the Redis orchestrator, Interface server, and AI Workers.
 
 ```bash
+cd docker
 docker-compose up --build -d
 ```
 
@@ -71,7 +72,7 @@ Access the web interface at **http://localhost:5001**.
 ### Managing Services
 
 ```bash
-# View logs
+# View logs (from docker/ directory)
 docker-compose logs -f
 
 # Stop services
@@ -92,30 +93,36 @@ docker-compose up --build -d
 
 ## Project Structure
 
-### Core Application Files
+### Core Application Modules
+
+| Module | Purpose |
+|--------|---------|
+| `server/` | **Web Interface** - Flask server with UI and API endpoints. Handles uploads and job queuing. |
+| `workers/` | **Task Processing** - Worker processes and task definitions for distributed AI execution. |
+| `narration/` | **Text Extraction** - LLM-based narration (GPT-4 Vision) and OCR fallback (Google Vision). |
+| `translation/` | **Language Translation** - Neural machine translation (EN→NL) using OpenNMT. |
+| `ocr/` | **Advanced OCR** - Speech bubble detection and panel ordering utilities. |
+| `config.py` | **Central Configuration** - Environment variables and system defaults. |
+
+### Key Files
 
 | File | Purpose |
 |------|---------|
-| `interface_server.py` | Flask web server with UI and API. Handles user uploads and enqueues jobs to Redis. |
-| `start_worker.py` | Worker process that consumes tasks from Redis queue and executes AI pipelines. |
-| `tasks.py` | Defines async task functions: OCR/narration, translation, and TTS synthesis. |
-| `config.py` | Central configuration loading environment variables and defaults. |
-
-### AI Processing Modules
-
-| File / Folder | Purpose |
-|---------------|---------|
-| `llm_narrator.py` | GPT-4 Vision integration for cinematic comic narration. |
-| `comic_reader_fixed.py` | Fallback OCR using Google Cloud Vision API. |
-| `ocr_comic_to_text/` | Legacy OCR logic & Neural machine translation module (EN→NL) using OpenNMT. |
+| `server/interface_server.py` | Flask web server that enqueues jobs to Redis queue. |
+| `workers/worker.py` | Worker entry point that consumes and executes tasks from Redis. |
+| `workers/tasks.py` | Task function definitions (OCR, translation, TTS, full pipeline). |
+| `narration/llm_narrator.py` | GPT-4 Vision integration for cinematic narration. |
+| `narration/vision_ocr.py` | Google Cloud Vision OCR fallback. |
+| `translation/translator.py` | OpenNMT-based translation module (EN→NL). |
 
 ### Infrastructure
 
 | File / Folder | Purpose |
 |---------------|---------|
-| `docker-compose.yml` | Orchestrates Redis, Interface Server, and 3 AI Workers. |
-| `Dockerfile.interface` | Container definition for the web interface server. |
-| `Dockerfile.worker` | Container definition for AI worker processes. |
+| `docker/` | **Docker Configuration** - All containerization files. |
+| `docker/docker-compose.yml` | Orchestrates Redis, Interface Server, and 3 AI Workers. |
+| `docker/Dockerfile.interface` | Container definition for the web interface server. |
+| `docker/Dockerfile.worker` | Container definition for AI worker processes. |
 | `requirements.txt` | Python dependencies for the entire system. |
 
 ### Data & Assets

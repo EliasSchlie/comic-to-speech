@@ -47,7 +47,7 @@ from threading import Lock
 
 # Import LLM narrator for audiobook-style narration
 try:
-    from llm_narrator import get_comic_narrator
+    from narration.llm_narrator import get_comic_narrator
     import config
     LLM_NARRATOR_AVAILABLE = True
 except ImportError:
@@ -112,9 +112,9 @@ def get_tts_client():
     return tts_client
 
 # Directories
-AUDIO_DIR = Path("audio_files")
+AUDIO_DIR = Path("/app/audio_files")
 AUDIO_DIR.mkdir(exist_ok=True)
-TEMP_DIR = Path("temp_images")
+TEMP_DIR = Path("/app/temp_images")
 TEMP_DIR.mkdir(exist_ok=True)
 
 

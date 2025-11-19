@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from tasks import (
+from workers.tasks import (
     process_ocr_task,
     process_translation_task,
     process_tts_task,
@@ -10,7 +10,7 @@ from tasks import (
 # OCR TASK TESTS
 # ---------------------------
 
-@patch("tasks.ComicOCR")
+@patch("workers.tasks.ComicOCR")
 def test_ocr_task_success(mock_ocr):
     instance = mock_ocr.return_value
     instance.extract_text.return_value = {
@@ -28,7 +28,7 @@ def test_ocr_task_success(mock_ocr):
     assert result["extracted_text"] == "Hello"
 
 
-@patch("tasks.ComicOCR")
+@patch("workers.tasks.ComicOCR")
 def test_ocr_task_failure(mock_ocr):
     instance = mock_ocr.return_value
     instance.extract_text.side_effect = Exception("OCR boom")
@@ -43,8 +43,8 @@ def test_ocr_task_failure(mock_ocr):
 # TRANSLATION TESTS
 # ---------------------------
 
-@patch("tasks.is_translation_available", return_value=True)
-@patch("tasks.translate_text")
+@patch("workers.tasks.is_translation_available", return_value=True)
+@patch("workers.tasks.translate_text")
 def test_translation_task_success(mock_trans, _):
     mock_trans.return_value = "Hallo wereld"
 
@@ -54,7 +54,7 @@ def test_translation_task_success(mock_trans, _):
     assert result["translated_text"] == "Hallo wereld"
 
 
-@patch("tasks.is_translation_available", return_value=False)
+@patch("workers.tasks.is_translation_available", return_value=False)
 def test_translation_task_unavailable(_):
     result = process_translation_task("Hello")
 
@@ -66,7 +66,7 @@ def test_translation_task_unavailable(_):
 # TTS TESTS
 # ---------------------------
 
-@patch("tasks.get_tts_client")
+@patch("workers.tasks.get_tts_client")
 def test_tts_success(mock_tts):
     client = MagicMock()
     mock_tts.return_value = client
@@ -81,7 +81,7 @@ def test_tts_success(mock_tts):
     assert result["characters_used"] == len("Hello")
 
 
-@patch("tasks.get_tts_client")
+@patch("workers.tasks.get_tts_client")
 def test_tts_failure(mock_tts):
     client = MagicMock()
     mock_tts.return_value = client

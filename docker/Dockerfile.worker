@@ -25,14 +25,13 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
-COPY start_worker.py .
-COPY tasks.py .
+COPY workers/ ./workers/
+COPY narration/ ./narration/
+COPY translation/ ./translation/
 COPY config.py .
-COPY comic_reader_fixed.py .
-COPY llm_narrator.py .
+COPY .env .
 
-# Copy translation module and model files
-COPY ocr_comic_to_text/ ./ocr_comic_to_text/
+# Copy model files (for translation)
 COPY model/ ./model/
 
 # Create directories
@@ -42,4 +41,4 @@ RUN mkdir -p audio_files temp_images
 ENV PYTHONPATH=/app:$PYTHONPATH
 
 # Run worker
-CMD ["python", "start_worker.py"]
+CMD ["python", "workers/worker.py"]
