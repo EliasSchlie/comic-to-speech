@@ -26,10 +26,10 @@ graph TD
     Redis -->|Distribute| Worker2[AI Worker 2]
     Redis -->|Distribute| Worker3[AI Worker 3]
     
-    subgraph Worker Processing
+    subgraph "Worker Processing Pipeline"
         Worker1 -->|1. Extract/Narrate| GPT[GPT-4 Vision / OCR]
-        Worker1 -->|2. Translate (Opt)| NMT[OpenNMT Model]
-        Worker1 -->|3. Synthesize| TTS[Google Cloud TTS]
+        GPT -->|2. Translate| NMT[OpenNMT Model]
+        NMT -->|3. Synthesize| TTS[Google Cloud TTS]
     end
 ```
 
